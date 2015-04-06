@@ -1,0 +1,8 @@
+{ "identity":
+  { "username": "bot_account"
+  , "password": "oauth key from twitchapps.com/tmi" }
+, "options":
+  { "debug": true
+  , "debugDetails": true
+  , "dev": true }
+, "channel": "#my_channel" }
