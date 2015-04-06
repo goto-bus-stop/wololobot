@@ -1,0 +1,12 @@
+{ "private": true
+, "name": "wololobot"
+, "version": "0.1.0"
+, "dependencies":
+  { "debug": "2.x"
+  , "twitch-irc": "1.x" }
+, "devDependencies":
+  { "babel": "5.x" }
+, "scripts":
+  { "babel": "./node_modules/babel/bin/babel src --out-dir lib"
+  , "start": "DEBUG=IdleBot:* ./node_modules/babel/bin/babel-node ./server" }
+}
