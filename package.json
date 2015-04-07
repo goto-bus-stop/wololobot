@@ -7,6 +7,6 @@
 , "devDependencies":
   { "babel": "5.x" }
 , "scripts":
-  { "babel": "./node_modules/babel/bin/babel src --out-dir lib"
-  , "start": "DEBUG=IdleBot:* ./node_modules/babel/bin/babel-node ./server" }
+  { "babel": "./node_modules/babel/bin/babel/index.js --out-dir lib src"
+  , "start": "DEBUG=wololobot:* ./node_modules/babel/bin/babel-node ./server" }
 }
