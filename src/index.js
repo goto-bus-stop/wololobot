@@ -3,6 +3,34 @@ import { client as Client } from 'twitch-irc'
 
 const debug = require('debug')('wololobot:main')
 
+const appendArg = (args, arg, opt = {}) => {
+  if (arg.trim() === '' && !opt.quoted) return
+  if (/^\d+$/.test(arg)) arg = parseInt(arg, 10)
+  args.push(arg)
+}
+const parse = str => {
+  let args = [], i = 0, next
+  while (i < str.length) {
+    if (str[i] === ' ') {
+      next = i + 1
+    }
+    else if (str[i] === '"') {
+      next = str.indexOf('"', i + 1)
+      if (next < 0) next = str.length
+      appendArg(args, str.substring(i + 1, next), { quoted: true })
+      // skip trailing quote
+      next += 1
+    }
+    else {
+      next = str.indexOf(' ', i + 1)
+      if (next < 0) next = str.length
+      appendArg(args, str.substring(i, next))
+    }
+    i = next
+  }
+  return args
+}
+
 export default class WololoBot extends Client {
 
   constructor(opts) {
@@ -25,15 +53,15 @@ export default class WololoBot extends Client {
     })
   }
 
-  registerCommand(name, action) {
-    this._commands.set(name, action)
+  registerCommand(name, parameters, action) {
+    this._commands.set(name, { parameters, action })
   }
 
   onMessage(time, user, message) {
     for (let [ command, action ] of this._commands) {
       if (message.startsWith(command)) {
         debug('command', command, user, message)
-        action(user, message)
+        action.action(user, ...parse(message).slice(1))
       }
     }
   }
