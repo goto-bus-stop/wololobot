@@ -5,4 +5,8 @@
   { "debug": true
   , "debugDetails": true
   , "dev": true }
-, "channel": "#my_channel" }
+, "channel": "#my_channel"
+, "database":
+  { "dialect": "sqlite3"
+  , "connection": { "filename": "wololobot.sqlite" } }
+}

@@ -3,6 +3,8 @@
 , "version": "0.1.0"
 , "dependencies":
   { "debug": "2.x"
+  , "knex": "^0.7.6"
+  , "sqlite3": "^3.0.5"
   , "twitch-irc": "1.x" }
 , "devDependencies":
   { "babel": "5.x" }

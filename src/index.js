@@ -1,5 +1,8 @@
 import config from '../config.json'
 import { client as Client } from 'twitch-irc'
+import knex from 'knex'
+
+require('babel/polyfill')
 
 const debug = require('debug')('wololobot:main')
 
@@ -51,6 +54,8 @@ export default class WololoBot extends Client {
              : /* default channel */        orig.call(this, this._channel, ...args)
       }
     })
+
+    this.db = knex(opts.database)
   }
 
   registerCommand(name, parameters, action) {
