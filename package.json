@@ -3,9 +3,12 @@
 , "version": "0.1.0"
 , "dependencies":
   { "debug": "2.x"
+  , "irc-message": "3.x"
   , "knex": "^0.7.6"
-  , "sqlite3": "^3.0.5"
-  , "twitch-irc": "1.x" }
+  , "object-assign": "2.x"
+  , "slate-irc": "^0.8.1"
+  , "slate-irc-twitch": "1.x"
+  , "sqlite3": "^3.0.5" }
 , "devDependencies":
   { "babel": "5.x" }
 , "scripts":

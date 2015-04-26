@@ -1,18 +1,20 @@
-import WololoBot from './index'
-import Version from './modules/Version'
-import Florins from './modules/Florins'
-import RandomReddit from './modules/RandomReddit'
+import knex from 'knex'
 import { readFileSync as readFile } from 'fs'
+import wololobot from './index'
+import version from './modules/version'
+import florins from './modules/florins'
+import raffle from './modules/raffle'
+import reddit from './modules/reddit'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
-  const wb = new WololoBot(conf)
+  const db = knex(conf.database)
 
-  new Version(wb, {})
-  new Florins(wb, {})
-  new RandomReddit(wb, conf.RandomReddit || { sub: 'random' })
-
-  wb.connect()
+  const wb = wololobot(conf)
+  wb.use(version())
+  wb.use(florins({ db: db }))
+  wb.use(raffle())
+  wb.use(reddit(conf.reddit))
 
   return wb
 }
