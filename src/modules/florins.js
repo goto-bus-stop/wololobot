@@ -15,11 +15,13 @@ export default function (opts) {
       .where('lower(username)', '=', user.toLowerCase())
   }
   function florinsOfMany(users) {
+    let lusers = users.map(u => u.toLowerCase())
+    let nameMap = users.reduce((map, user, i) => assign(map, { [lusers[i]]: user }), {})
     return db('transactions')
       .select(db.raw('lower(username) as lname')).sum('amount as wallet')
-      .whereIn('lname', users.map(u => u.toLowerCase()))
+      .whereIn('lname', lusers)
       .groupBy('lname')
-      .reduce((o, t) => assign(o, { [t.lname]: t.wallet }), {})
+      .reduce((o, t) => assign(o, { [nameMap[t.lname] || t.lname]: t.wallet }), {})
   }
   function transaction(username, amount, description = '') {
     return db('transactions').insert({ username: username.toLowerCase()
