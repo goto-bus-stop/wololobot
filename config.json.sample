@@ -1,10 +1,7 @@
-{ "identity":
-  { "username": "bot_account"
-  , "password": "oauth key from twitchapps.com/tmi" }
-, "options":
-  { "debug": true
-  , "debugDetails": true
-  , "dev": true }
+{ "username": "bot_account"
+, "password": "oauth key from twitchapps.com/tmi"
+, "host": "irc.twitch.tv"
+, "port": 6667
 , "channel": "#my_channel"
 , "database":
   { "dialect": "sqlite3"
