@@ -7,6 +7,7 @@ import { connect } from 'net'
 import command from './command'
 import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
+import users from './users'
 
 import 'babel/polyfill'
 
@@ -28,6 +29,7 @@ export default function wololobot(opts) {
   })
   let bot = irc(connection, parser)
   bot.use(command())
+  bot.use(users())
   bot.use(twitch({ tags: true }))
 
   let channel = opts.channel.startsWith('#')? opts.channel
@@ -39,7 +41,7 @@ export default function wololobot(opts) {
     bot.twitchinit()
   })
 
-  bot.use(defaultChannel(channel, [ 'action', 'send', 'names'
+  bot.use(defaultChannel(channel, [ 'action', 'send', 'names', 'users'
                                   , 'ban', 'unban', 'clear', 'color', 'commercial', 'host'
                                   , 'unhost', 'mod', 'unmod', 'mods', 'r9kbeta', 'r9kbetaoff'
                                   , 'slow', 'slowoff', 'subscribers', 'subscribersoff', 'timeout' ]))

@@ -2,7 +2,8 @@
 , "name": "wololobot"
 , "version": "0.1.0"
 , "dependencies":
-  { "debug": "2.x"
+  { "array-findindex": ""
+  , "debug": "2.x"
   , "irc-message": "3.x"
   , "knex": "^0.7.6"
   , "object-assign": "2.x"
