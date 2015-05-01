@@ -69,9 +69,9 @@ export default function (opts) {
       else {
         amount = parseInt(amount, 10)
         transaction(username, amount, description)
-          .then(() => bot.say(amount < 0? `@${mname} Removed ${-amount} florins from ${username}.`
-                             : /* _ */    `@${mname} Gave ${amount} florins to ${username}.`))
-          .catch(e => bot.say(`@${mname} ${e.message}`))
+          .then(() => bot.send(amount < 0? `@${mname} Removed ${-amount} florins from ${username}.`
+                              : /* _ */    `@${mname} Gave ${amount} florins to ${username}.`))
+          .catch(e => bot.send(`@${mname} ${e.message}`))
       }
     })
   }
