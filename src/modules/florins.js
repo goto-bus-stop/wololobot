@@ -74,5 +74,16 @@ export default function (opts) {
           .catch(e => bot.send(`@${mname} ${e.message}`))
       }
     })
+
+    bot.command('!top', (message, n = 3) => {
+      if (n > 15) n = 15
+      db('transactions')
+        .select('username').sum('amount as wallet')
+        .groupBy('username')
+        .orderBy('wallet', 'desc')
+        .limit(n)
+        .reduce((list, u, i) => list.concat([ `#${i + 1}) ${u.username} - ${u.wallet}` ]), [])
+        .then(list => bot.send(`@${message.user} Top florins: ` + list.join(', ')))
+    })
   }
 }
