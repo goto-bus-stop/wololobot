@@ -1,5 +1,3 @@
-import config from '../config.json'
-import { client as Client } from 'twitch-irc'
 import knex from 'knex'
 import irc from 'slate-irc'
 import { createStream as ircparser } from 'irc-message'
@@ -45,9 +43,9 @@ export default function wololobot(opts) {
                                   , 'ban', 'unban', 'clear', 'color', 'commercial', 'host'
                                   , 'unhost', 'mod', 'unmod', 'mods', 'r9kbeta', 'r9kbetaoff'
                                   , 'slow', 'slowoff', 'subscribers', 'subscribersoff', 'timeout' ]))
-  bot.pass(config.password)
-  bot.nick(config.username)
-  bot.user(config.username, config.username)
+  bot.pass(opts.password)
+  bot.nick(opts.username)
+  bot.user(opts.username, opts.username)
   bot.join(channel)
 
   bot.mods()
