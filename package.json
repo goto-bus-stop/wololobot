@@ -3,6 +3,7 @@
 , "version": "0.1.0"
 , "dependencies":
   { "array-findindex": ""
+  , "debounce": "^1.0.0"
   , "debug": "2.x"
   , "irc-message": "3.x"
   , "knex": "^0.7.6"

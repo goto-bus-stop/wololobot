@@ -1,3 +1,5 @@
+import debounce from 'debounce'
+
 const appendArg = (args, arg, opt = {}) => {
   if (arg.trim() === '' && !opt.quoted) return
   if (/^\d+$/.test(arg)) arg = parseInt(arg, 10)
@@ -42,15 +44,22 @@ export default function () {
       if (!action) {
         [ opts, action ] = [ {}, opts ]
       }
+      let execute = message => {
+        let params  = message.trailing.slice(command.length).trim()
+        let wrapped = message.message
+        wrapped.user = wrapped.tags['display-name']
+                    || wrapped.prefix.user
+        action(wrapped, ...parse(params))
+      }
+
+      if (opts.throttle)
+        execute = debounce(execute, opts.throttle, true)
+
       let cb = message => {
         if (message.command !== 'PRIVMSG') return
         if (message.trailing.startsWith(command)) {
-          let params = message.trailing.slice(command.length).trim()
-          let tags = message.message.tags
-          if (!allowed(opts, tags)) return
-
-          message.message.user = tags['display-name'] || message.message.prefix.user
-          action(message.message, ...parse(params))
+          if (allowed(opts), message.message.tags)
+            execute(message)
         }
       }
       bot._commands[command] = cb
