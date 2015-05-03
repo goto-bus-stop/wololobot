@@ -28,16 +28,12 @@ export default function wololobot(opts) {
   let bot = irc(connection, parser)
   bot.use(command())
   bot.use(users())
-  bot.use(twitch({ tags: true }))
+  bot.use(twitch({ init: true, tags: true }))
 
   let channel = opts.channel.startsWith('#')? opts.channel
               : /* otherwise */               `#${opts.channel}`
 
   bot.channel = channel
-
-  bot.on('motd', () => {
-    bot.twitchinit()
-  })
 
   bot.use(defaultChannel(channel, [ 'action', 'send', 'names', 'users'
                                   , 'ban', 'unban', 'clear', 'color', 'commercial', 'host'
