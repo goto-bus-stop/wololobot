@@ -19,11 +19,12 @@ export default function wololobot(opts) {
     let len = msg.params.length
     parser.emit('message', {
       prefix: msg.prefix && msg.prefix.raw
+    , parsedPrefix: msg.prefix
     , command: msg.command
     , params: msg.params.slice(0, len - 1).join(' ')
     , trailing: msg.params[len - 1]
     , string: msg.raw
-    , message: msg
+    , tags: msg.tags
     })
   })
 

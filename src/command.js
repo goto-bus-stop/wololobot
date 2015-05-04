@@ -46,10 +46,9 @@ export default function () {
       }
       let execute = message => {
         let params  = message.trailing.slice(command.length).trim()
-        let wrapped = message.message
-        wrapped.user = wrapped.tags['display-name']
-                    || wrapped.prefix.user
-        action(wrapped, ...parse(params))
+        message.user = message.tags['display-name']
+                    || message.parsedPrefix.user
+        action(message, ...parse(params))
       }
 
       if (opts.throttle)
@@ -58,7 +57,7 @@ export default function () {
       let cb = message => {
         if (message.command !== 'PRIVMSG') return
         if (message.trailing.startsWith(command)) {
-          if (allowed(opts), message.message.tags)
+          if (allowed(opts, message.tags))
             execute(message)
         }
       }
