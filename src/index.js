@@ -6,6 +6,7 @@ import command from './command'
 import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
 import users from './users'
+import twitchLiveStatus from './twitch-live-status'
 
 import 'babel/polyfill'
 
@@ -25,13 +26,15 @@ export default function wololobot(opts) {
     , message: msg
     })
   })
+
+  let channel = opts.channel.startsWith('#')? opts.channel
+              : /* otherwise */               `#${opts.channel}`
+
   let bot = irc(connection, parser)
   bot.use(command())
   bot.use(users())
   bot.use(twitch({ init: true, tags: true }))
-
-  let channel = opts.channel.startsWith('#')? opts.channel
-              : /* otherwise */               `#${opts.channel}`
+  bot.use(twitchLiveStatus({ channel: channel.slice(1) }))
 
   bot.channel = channel
 
