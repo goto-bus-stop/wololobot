@@ -7,6 +7,7 @@ import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
 import users from './users'
 import twitchLiveStatus from './twitch-live-status'
+import twitchSubs from './twitch-subs'
 
 import 'babel/polyfill'
 
@@ -36,6 +37,8 @@ export default function wololobot(opts) {
   bot.use(users())
   bot.use(twitch({ init: true, tags: true }))
   bot.use(twitchLiveStatus({ channel: channel.slice(1) }))
+  bot.use(twitchSubs({ channel: channel.slice(1)
+                     , token: '' }))
 
   bot.channel = channel
 
