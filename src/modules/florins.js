@@ -6,9 +6,21 @@ const debug = require('debug')('wololobot:florins')
 export default function (opts) {
   opts = assign({
     delay: 4000
+  , gain: 5 // 5 florins per 10 minutes
+  , subGain: 10 // 10 florins per 10 minutes
+  , gainInterval: 10 * 60 * 1000 // 10 minutes
   }, opts)
 
   const { db } = opts
+
+  db.schema.createTableIfNotExists('transactions', t => {
+    t.increments('id').primary()
+    t.string('username', 50)
+    t.integer('amount')
+    t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
+    t.text('description')
+  })
+
   function florinsOf(user) {
     return db('transactions')
       .sum('amount as florins')
@@ -45,7 +57,25 @@ export default function (opts) {
       florinsTimeout = null
     }
 
+    function gain() {
+      let users = bot.users()
+      let sub = bot.isSubscriber && bot.isSubscriber(u.name)
+      transactions(
+        users.map(u => ({ username: u.name
+                        , amount: sub ? opts.subGain : opts.gain
+                        , description: 'florins gain' }))
+      )
+    }
+
+    setInterval(() => {
+      if (bot.isLive) gain()
+    }, opts.gainInterval)
+
     assign(bot, { florinsOf, florinsOfMany, transaction, transactions })
+
+    bot.command('!forcegain', { ranks: [ 'mod' ] }, message => {
+      gain()
+    })
 
     bot.command('!florins', (message, username = null) => {
       if (!username) {
