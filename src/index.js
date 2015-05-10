@@ -13,7 +13,7 @@ import 'babel/polyfill'
 const debug = require('debug')('wololobot:main')
 
 export default function wololobot(opts) {
-  let connection = connect(opts)
+  let stream = opts.stream || connect(opts)
   let parser = ircparser({ parsePrefix: true })
   parser.on('data', msg => {
     let len = msg.params.length
@@ -31,7 +31,7 @@ export default function wololobot(opts) {
   let channel = opts.channel.startsWith('#')? opts.channel
               : /* otherwise */               `#${opts.channel}`
 
-  let bot = irc(connection, parser)
+  let bot = irc(stream, parser)
   bot.use(command())
   bot.use(users())
   bot.use(twitch({ init: true, tags: true }))
