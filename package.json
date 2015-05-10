@@ -8,6 +8,7 @@
   , "irc-message": "3.x"
   , "knex": "0.x"
   , "object-assign": "2.x"
+  , "request": "2.x"
   , "slate-irc": "^0.8.1"
   , "slate-irc-twitch": "^1.0.2"
   , "sqlite3": "^3.0.5" }
