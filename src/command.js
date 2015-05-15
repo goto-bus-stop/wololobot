@@ -1,5 +1,7 @@
 import debounce from 'debounce'
 
+const debug = require('debug')('wololobot:command')
+
 const appendArg = (args, arg, opt = {}) => {
   if (arg.trim() === '' && !opt.quoted) return
   if (/^\d+$/.test(arg)) arg = parseInt(arg, 10)
@@ -28,12 +30,11 @@ const parse = str => {
   return args
 }
 
-const allowed = (opts, tags) => {
-  if (!opts.ranks) return true
-  let type = tags.user_type || tags['user-type']
-  return opts.ranks.indexOf(type) !== -1
-      || opts.ranks.indexOf('subscriber') !== -1 && tags.subscriber == '1'
-      || false
+const userLevels = {
+  broadcaster: 3,
+  mod: 2,
+  subscriber: 1,
+  viewer: 0
 }
 
 export default function () {
@@ -57,8 +58,20 @@ export default function () {
       let cb = message => {
         if (message.command !== 'PRIVMSG') return
         if (message.trailing.startsWith(command)) {
-          if (allowed(opts, message.tags))
-            execute(message)
+          if (opts.rank) {
+            let { tags, parsedPrefix } = message
+            let userType = tags.user_type || tags['user-type']
+            if (parsedPrefix.user === bot.channel.slice(1)) {
+              userType = 'broadcaster'
+            }
+            userType = userType || (tags.subscriber ? 'subscriber' : 'viewer')
+            if (userLevels[userType] < userLevels[opts.rank]) {
+              debug('deny', parsedPrefix.user, userType, command, opts.rank)
+              return
+            }
+            debug('allow', parsedPrefix.user, userType, command, opts.rank)
+          }
+          execute(message)
         }
       }
       bot._commands[command] = cb

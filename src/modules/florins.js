@@ -73,7 +73,7 @@ export default function (opts) {
 
     assign(bot, { florinsOf, florinsOfMany, transaction, transactions })
 
-    bot.command('!forcegain', { ranks: [ 'mod' ] }, message => {
+    bot.command('!forcegain', { rank: 'mod' }, message => {
       gain()
     })
 
@@ -90,7 +90,7 @@ export default function (opts) {
     })
 
     bot.command('!transaction'
-               , { ranks: [ 'mod' ] }
+               , { rank: 'mod' }
                , (message, username, amount, description = '') => {
       const mname = message.user
       if (!/^-?\d+$/.test(amount)) {

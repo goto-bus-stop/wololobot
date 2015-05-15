@@ -82,7 +82,7 @@ export default function (opts) {
 
   return function (bot) {
     bot.command('!raffle'
-               , { ranks: [ 'mod' ] }
+               , { rank: 'mod' }
                , (message, command) => {
       if (command === 'open' || command === 'close' || command === 'stop') return
       const mname = message.user
@@ -92,7 +92,7 @@ export default function (opts) {
       bot.send(`!raffle stop - Stops a raffle and refunds florins.`)
     })
     bot.command('!raffle open'
-               , { ranks: [ 'mod' ] }
+               , { rank: 'mod' }
                , (message, price, maxTickets, winners = 1) => {
       const mname = message.user
       if (!bot.florinsOf)
@@ -116,7 +116,7 @@ export default function (opts) {
       setTimeout(() => { bot.send(`Use "!ticket clear" to cancel your participation.`) }, 200)
     })
     bot.command('!raffle close'
-               , { ranks: [ 'mod' ] }
+               , { rank: 'mod' }
                , (message) => {
       const mname = message.user
       if (!bot.raffle)
@@ -135,7 +135,7 @@ export default function (opts) {
       delete bot.raffle
     })
     bot.command('!raffle stop'
-               , { ranks: [ 'mod' ] }
+               , { rank: 'mod' }
                , (message) => {
       bot.send(`Raffle stopped and florins refunded.`)
       bot.raffle.stop()
