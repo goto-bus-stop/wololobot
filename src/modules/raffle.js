@@ -3,6 +3,7 @@ const debug = require('debug')('wololobot:raffle')
 
 const openUsage = '!raffle open [price] [max tickets] [?winners]'
 
+const sum = (a, b) => a + b
 const check = n => n != null && !isNaN(parseInt(n, 10))
 
 export default function (opts) {
@@ -11,12 +12,10 @@ export default function (opts) {
     let _entries = {}
 
     function enter(user, tickets) {
-      if (isNaN(tickets))
+      if (isNaN(tickets) || tickets < 0)
         return Promise.reject(new Error('Invalid number of tickets.'))
       if (tickets > maxTickets)
         return Promise.reject(new Error(`Cannot enter with more than ${maxTickets} tickets.`))
-      if (tickets < 0)
-        return Promise.reject(new Error('Cannot enter with a negative amount of tickets.'))
 
       let luser = user.toLowerCase()
       if (tickets === 0) {
@@ -39,7 +38,7 @@ export default function (opts) {
       return _entries[user.toLowerCase()].tickets
     }
     function totalTickets() {
-      return Object.keys(_entries).reduce((total, user) => total + _entries[user].tickets, 0)
+      return entries().map(entry => entry.tickets).reduce(sum)
     }
     function end() {
       // find winners
@@ -100,11 +99,11 @@ export default function (opts) {
                         `but it doesn't appear to be available.`)
       if (bot.raffle)
         return bot.send(`@${mname} Another raffle is already open.`)
-      if (!check(price))
+      if (!check(price) || price < 0)
         return bot.send(`@${mname} Given ticket price is not valid. (${openUsage})`)
-      if (!check(maxTickets))
+      if (!check(maxTickets) || maxTickets < 0)
         return bot.send(`@${mname} Given maximum number of tickets is not valid. (${openUsage})`)
-      if (!check(winners))
+      if (!check(winners) || winners < 0)
         return bot.send(`@${mname} Given number of winners is not valid. (${openUsage})`)
 
       bot.raffle = raffle(bot, price, maxTickets, winners)
@@ -132,14 +131,14 @@ export default function (opts) {
             })
           }, 4000)
         })
-      delete bot.raffle
+      bot.raffle = null
     })
     bot.command('!raffle stop'
                , { rank: 'mod' }
                , (message) => {
       bot.send(`Raffle stopped and florins refunded.`)
       bot.raffle.stop()
-      delete bot.raffle
+      bot.raffle = null
     })
     const ticket = (message, tickets) => {
       const uname = message.user
