@@ -37,6 +37,10 @@ export default function (opts) {
     function tickets(user) {
       return _entries[user.toLowerCase()].tickets
     }
+    function entryValue(user) {
+      let t = tickets(user)
+      return t ? price * t : 0
+    }
     function totalTickets() {
       return entries().map(entry => entry.tickets).reduce(sum)
     }
@@ -76,7 +80,7 @@ export default function (opts) {
       _entries = {}
     }
 
-    return { enter, end, stop, tickets, totalTickets }
+    return { enter, end, stop, tickets, totalTickets, entryValue }
   }
 
   return function (bot) {

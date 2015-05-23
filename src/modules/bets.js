@@ -96,12 +96,16 @@ export default function bets(opts) {
                       .map(e => e.florins)
                       .reduce(sum, 0)
     }
+    function entryValue(user) {
+      let entry = _entries[user.toLowerCase()]
+      return entry && entry.florins || 0
+    }
 
     debug('open', optionNames)
 
     return { valid, close, closed, end,
              enter, clear,
-             pool, optionValue,
+             pool, entryValue, optionValue,
              options: _options }
   }
 

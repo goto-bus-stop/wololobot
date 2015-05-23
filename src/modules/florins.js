@@ -52,9 +52,19 @@ export default function (opts) {
     let florinsChecks = []
     function respondFlorins() {
       florinsOfMany(florinsChecks)
-        .then(o => Object.keys(o)
-                         .map(name => `${name} - ${o[name]}`)
-                         .join(', '))
+        .then(o => {
+          return Object.keys(o).map(name => {
+            let extra = []
+            let bet = bot.bet && bot.bet.entryValue(name)
+            let raffle = bot.raffle && bot.raffle.entryValue(name)
+            if (bet) extra.push(`bet:${bet}`)
+            if (raffle) extra.push(`raffle:${raffle}`)
+
+            // user - 352[bet:20,raffle:70]
+            return `${name} - ${o[name] - bet - raffle}` +
+                   (extra.length ? `[${extra.join(' / ')}]` : '')
+          }).join(', ')
+        })
         .tap(bot.send.bind(bot))
       florinsChecks = []
       florinsTimeout = null
