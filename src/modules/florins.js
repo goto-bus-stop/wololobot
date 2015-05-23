@@ -22,9 +22,12 @@ export default function (opts) {
   })
 
   function florinsOf(user) {
+    debug('florinsOf', user)
     return db('transactions')
+      .select(db.raw('lower(username) as lname'))
       .sum('amount as florins')
-      .where('lower(username)', '=', user.toLowerCase())
+      .where('lname', '=', user.toLowerCase())
+      .then(arr => arr[0])
   }
   function florinsOfMany(users) {
     let lusers = users.map(u => u.toLowerCase())
