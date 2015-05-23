@@ -4,6 +4,7 @@ import wololobot from './index'
 import version from './modules/version'
 import florins from './modules/florins'
 import raffle from './modules/raffle'
+import bets from './modules/bets'
 import reddit from './modules/reddit'
 
 export default function main(confile = 'config.json') {
@@ -14,6 +15,7 @@ export default function main(confile = 'config.json') {
   wb.use(version())
   wb.use(florins({ db: db }))
   wb.use(raffle())
+  wb.use(bets())
   wb.use(reddit(conf.reddit))
 
   return wb
