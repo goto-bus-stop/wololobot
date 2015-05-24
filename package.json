@@ -1,6 +1,8 @@
 { "private": true
 , "name": "wololobot"
 , "version": "0.1.0"
+, "main": "./lib/index"
+, "bin": "./bin/wololobot"
 , "dependencies":
   { "array-findindex": ""
   , "debounce": "^1.0.0"
@@ -16,5 +18,5 @@
   { "babel": "5.x" }
 , "scripts":
   { "babel": "./node_modules/.bin/babel --out-dir lib src"
-  , "start": "DEBUG=wololobot:* ./node_modules/.bin/babel-node ./server" }
+  , "start": "DEBUG=wololobot:* ./bin/wololobot" }
 }
