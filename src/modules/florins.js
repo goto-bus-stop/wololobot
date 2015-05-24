@@ -55,8 +55,8 @@ export default function (opts) {
         .then(o => {
           return Object.keys(o).map(name => {
             let extra = []
-            let bet = bot.bet && bot.bet.entryValue(name)
-            let raffle = bot.raffle && bot.raffle.entryValue(name)
+            let bet = bot.bet && bot.bet.entryValue(name) || 0
+            let raffle = bot.raffle && bot.raffle.entryValue(name) || 0
             if (bet) extra.push(`bet:${bet}`)
             if (raffle) extra.push(`raffle:${raffle}`)
 
