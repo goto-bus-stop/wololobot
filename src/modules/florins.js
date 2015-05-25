@@ -19,7 +19,8 @@ export default function (opts) {
     t.integer('amount')
     t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
     t.text('description')
-  })
+  }).then(() => { debug('created table') })
+    .catch(e => { throw e })
 
   function florinsOf(user) {
     debug('florinsOf', user)
