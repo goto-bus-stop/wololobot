@@ -35,7 +35,7 @@ export default function (opts) {
       return Object.keys(_entries).map(u => _entries[u])
     }
     function tickets(user) {
-      return _entries[user.toLowerCase()].tickets
+      return (_entries[user.toLowerCase()] || {}).tickets
     }
     function entryValue(user) {
       let t = tickets(user)
