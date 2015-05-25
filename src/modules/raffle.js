@@ -23,8 +23,8 @@ export default function (opts) {
         return Promise.resolve({ user, tickets: 0 })
       }
 
-      return bot.florinsOf(user).then(florins => {
-        if (florins > tickets * price)
+      return bot.florinsOf(user).then(wallet => {
+        if (wallet.florins < tickets * price)
           return Promise.reject(new Error('You don\'t have that many florins.'))
 
         _entries[luser] = { user, tickets }
