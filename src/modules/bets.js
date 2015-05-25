@@ -202,7 +202,7 @@ export default function bets(opts) {
           .indexOf(option) !== -1)
         return
       if (!bot.bet)
-        return
+        return bot.send(`@${uname} No bets are open right now.`)
       if (!bot.bet.valid(option))
         return bot.send(`@${uname} Betting option "${option}" does not exist.`)
       if (isNaN(florins) || florins < 0)
