@@ -65,8 +65,10 @@ export default function () {
             if (parsedPrefix.user === bot.channel.slice(1)) {
               userType = 'broadcaster'
             }
-            userType = userType || (tags.subscriber ? 'subscriber' : 'viewer')
-            if (userLevels[userType] < userLevels[opts.rank]) {
+            userType = typeof userType === 'string'
+                     ? userType
+                     : (tags.subscriber ? 'subscriber' : 'viewer')
+            if (!(userLevels[userType] >= userLevels[opts.rank])) {
               debug('deny', parsedPrefix.user, userType, command, opts.rank)
               return
             }
