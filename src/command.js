@@ -47,8 +47,9 @@ export default function () {
       }
       let execute = message => {
         let params  = message.trailing.slice(command.length).trim()
-        message.user = message.tags['display-name']
-                    || message.parsedPrefix.user
+        message.user = typeof message.tags['display-name'] === 'string'
+                     ? message.tags['display-name']
+                     : message.parsedPrefix.user
         action(message, ...parse(params))
       }
 
