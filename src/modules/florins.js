@@ -72,12 +72,12 @@ export default function (opts) {
 
     function gain() {
       let users = bot.users()
-      let sub = bot.isSubscriber && bot.isSubscriber(u.name)
-      transactions(
-        users.map(u => ({ username: u.name
-                        , amount: sub ? opts.subGain : opts.gain
-                        , description: 'florins gain' }))
-      )
+      transactions(users.map(u => {
+        let sub = bot.isSubscriber && bot.isSubscriber(u.name)
+        return { username: u.name
+               , amount: sub ? opts.subGain : opts.gain
+               , description: 'florins gain' }
+      }))
     }
 
     setInterval(() => {
