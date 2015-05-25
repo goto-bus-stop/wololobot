@@ -32,12 +32,18 @@ export default function (opts) {
   }
   function florinsOfMany(users) {
     let lusers = users.map(u => u.toLowerCase())
+    // maps lower case names to the original capitalised names
     let nameMap = users.reduce((map, user, i) => assign(map, { [lusers[i]]: user }), {})
     return db('transactions')
       .select(db.raw('lower(username) as lname')).sum('amount as wallet')
       .whereIn('lname', lusers)
       .groupBy('lname')
       .reduce((o, t) => assign(o, { [nameMap[t.lname] || t.lname]: t.wallet }), {})
+      // add default 0 florins for unrecorded users
+      .then(o => {
+        users.forEach(u => o[u] || (o[u] = 0))
+        return o
+      })
   }
   function transaction(username, amount, description = '') {
     return db('transactions').insert({ username: username.toLowerCase()
