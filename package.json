@@ -5,6 +5,7 @@
 , "bin": "./bin/wololobot"
 , "dependencies":
   { "array-findindex": ""
+  , "bluebird": "^2.9.26"
   , "debounce": "^1.0.0"
   , "debug": "2.x"
   , "irc-message": "3.x"
