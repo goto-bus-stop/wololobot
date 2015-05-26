@@ -6,6 +6,7 @@ import florins from './modules/florins'
 import raffle from './modules/raffle'
 import bets from './modules/bets'
 import reddit from './modules/reddit'
+import streamtime from './modules/streamtime'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
@@ -17,6 +18,10 @@ export default function main(confile = 'config.json') {
   wb.use(raffle())
   wb.use(bets())
   wb.use(reddit(conf.reddit))
+  wb.use(streamtime({ channel: (conf.channel[0] === '#') ?
+                                 conf.channel.slice(1)
+                               : conf.channel
+                    , db: db }))
 
   return wb
 }
