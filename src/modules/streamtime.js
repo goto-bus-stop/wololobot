@@ -191,7 +191,9 @@ export default function(opts) {
             reject(err)
           } else {
             foundPanel = panels.some(panel => {
-              if (panel.data.title.toLowerCase() === 'schedule' || panel.data.image === opts.schedImage) {
+              if ((panel.data.title !== void 0 &&
+                  panel.data.title.toLowerCase() === 'schedule') ||
+                  panel.data.image === opts.schedImage) {
                 streams = parseSchedule(htmlToText.fromString(panel.html_description
                   , { ignoreHref: true, ignoreImage: true , wordwrap: null }))
                 return true
