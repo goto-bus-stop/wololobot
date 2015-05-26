@@ -128,8 +128,9 @@ export default function (opts) {
     bot.command('!top', (message, n = 3) => {
       if (n > 15) n = 15
       db('transactions')
-        .select('username').sum('amount as wallet')
-        .groupBy('username')
+        .select('username', db.raw('lower(username) as lname'))
+        .sum('amount as wallet')
+        .groupBy('lname')
         .orderBy('wallet', 'desc')
         .limit(n)
         .reduce((list, u, i) => list.concat([ `#${i + 1}) ${u.username} - ${u.wallet}` ]), [])
