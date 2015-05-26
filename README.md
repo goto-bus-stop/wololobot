@@ -7,7 +7,7 @@ Chat bot for the ZeroEmpires Twitch.tv stream, with loyalty stream currency
 ## Building
 
 1. `npm install`
-1. `npm run build`
+1. `npm run babel`
 
 ## Configuration
 
