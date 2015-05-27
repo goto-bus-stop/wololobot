@@ -1,5 +1,5 @@
 import request from 'request'
-import tzCodes from '../../timezones.json'
+import tzCodes from 'timezone-abbr-offsets'
 import strip from 'strip'
 import assign from 'object-assign'
 import countdown from 'countdown'
