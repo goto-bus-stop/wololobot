@@ -14,7 +14,9 @@
   , "request": "2.x"
   , "slate-irc": "^0.8.1"
   , "slate-irc-twitch": "^1.0.2"
-  , "sqlite3": "^3.0.5" }
+  , "sqlite3": "^3.0.5"
+  , "strip": "^0.0.7"
+  , "countdown": "mckamey/countdownjs#v2.5.2" }
 , "devDependencies":
   { "babel": "5.x" }
 , "scripts":
