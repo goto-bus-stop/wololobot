@@ -1,6 +1,6 @@
 import request from 'request'
 import tzCodes from '../../timezones.json'
-import htmlToText from 'html-to-text'
+import strip from 'strip'
 import assign from 'object-assign'
 import countdown from 'countdown'
 
@@ -196,8 +196,8 @@ export default function(opts) {
               if ((panel.data.title !== void 0 &&
                   panel.data.title.toLowerCase() === 'schedule') ||
                   panel.data.image === opts.schedImage) {
-                streams = parseSchedule(htmlToText.fromString(panel.html_description
-                  , { ignoreHref: true, ignoreImage: true , wordwrap: null }))
+                streams = parseSchedule(strip(panel.html_description))
+                debug(strip(panel.html_description))
                 return true
               }
             })
