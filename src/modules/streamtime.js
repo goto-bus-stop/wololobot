@@ -188,8 +188,10 @@ export default function(opts) {
         , json: true },
         (err, res, panels = []) => {
           if (err) {
+            debug(`An error occured while trying to get the panels: ${err}`)
             reject(err)
           } else {
+            streams = []
             foundPanel = panels.some(panel => {
               if ((panel.data.title !== void 0 &&
                   panel.data.title.toLowerCase() === 'schedule') ||
@@ -300,7 +302,9 @@ export default function(opts) {
     bot.command('!streamtime update'
                 , { throttle: 10000 }
                 , (message) => {
-      getTimes().then(() => bot.send(`@${message.user} Updated.`))
+      getTimes()
+        .then(() => bot.send(`@${message.user} Updated.`))
+        .catch(err => bot.send(`@${message.user} Couldn't update streamtimes.`))
     })
 
     bot.command('!streamtime', (message, extra) => {
@@ -320,9 +324,13 @@ export default function(opts) {
               overwrite.time > now.setMinutes(now.getMinutes - 5)) {
             return bot.send('The stream should have started a second ago!')
           }
-          msg = msg.replace('$time$', countdown(overwrite.time).toString())
+          msg = msg.replace(/\$iftime\{(.*?)}/, '$1')
+          msg = msg.replace('$time', countdown(overwrite.time).toString())
         } else if (next !== null) {
-          msg = msg.replace('$time$', countdown(next[0]).toString())
+          msg = msg.replace(/\$iftime\{(.*?)}/, '$1')
+          msg = msg.replace('$time', countdown(next[0]).toString())
+        } else {
+          msg = msg.replace(/\$iftime\{(.*?)}/, '')
         }
         return bot.send(msg)
       } else if (overwrite.time !== null) {
