@@ -69,7 +69,8 @@ export default function(opts) {
       entrants = []
       open = true
       nEntrants = 0
-      bot.send('New drawing opened! To enter, type !play. Subscribers have double the chances to' +
+      bot.send('New drawing opened! To enter, type !play. Subscribers have ' +
+               `${opts.subChances / opts.normalChances}x higher chances to ` +
                'win. Type !draw close <number of players> to end the drawing.')
     })
 
@@ -78,7 +79,7 @@ export default function(opts) {
                 , (message, number) => {
       open = false
       number = parseInt(number)
-      if (number.isNaN) {
+      if (isNaN(number)) {
         bot.send(`@${message.user} Usage: !draw close <number of players>`)
         return
       }
