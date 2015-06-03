@@ -7,6 +7,7 @@ import raffle from './modules/raffle'
 import bets from './modules/bets'
 import reddit from './modules/reddit'
 import streamtime from './modules/streamtime'
+import drawing from './modules/drawing'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
@@ -22,6 +23,7 @@ export default function main(confile = 'config.json') {
                                  conf.channel.slice(1)
                                : conf.channel
                     , db: db }))
+  wb.use(drawing())
 
   return wb
 }
