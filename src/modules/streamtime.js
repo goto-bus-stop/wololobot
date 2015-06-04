@@ -312,7 +312,7 @@ export default function(opts) {
           .indexOf(extra) !== -1) {
         return
       }
-      if (bot.isLive && additional !== 'next') {
+      if (bot.isLive && extra !== 'next') {
         return bot.send("It's live! F5!")
       }
       let next = getNext()
