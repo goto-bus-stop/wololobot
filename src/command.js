@@ -56,9 +56,11 @@ export default function () {
       if (opts.throttle)
         execute = debounce(execute, opts.throttle, true)
 
+      let re = new RegExp(`${command}\\b`)
+
       let cb = message => {
         if (message.command !== 'PRIVMSG') return
-        if (message.trailing.startsWith(command)) {
+        if (re.test(message.trailing)) {
           if (opts.rank) {
             let { tags, parsedPrefix } = message
             let userType = tags.user_type || tags['user-type']
