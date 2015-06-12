@@ -8,6 +8,7 @@ import bets from './modules/bets'
 import reddit from './modules/reddit'
 import streamtime from './modules/streamtime'
 import drawing from './modules/drawing'
+import sex from './modules/sex'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
