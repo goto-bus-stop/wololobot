@@ -24,6 +24,7 @@ export default function main(confile = 'config.json') {
                                : conf.channel
                     , db: db }))
   wb.use(drawing())
+  wb.use(sex())
 
   return wb
 }
