@@ -83,7 +83,10 @@ export default function bets(opts) {
     }
     function clear(user) {
       user = user.toLowerCase()
+      if (status !== 'open')
+        return Promise.reject(new Error(`No bets are open right now.`))
       if (user in _entries) delete _entries[user]
+      return Promise.resolve()
     }
     function _options() {
       return Object.keys(options).reduce((arr, o) => {
@@ -180,6 +183,7 @@ export default function bets(opts) {
       if (!bot.bet)
         return
       bot.bet.clear(message.user)
+        .catch(e => bot.send(`@${message.user} ${e.message}`))
     })
 
     bot.command('!bet options', { throttle: 10000 }, () => {
