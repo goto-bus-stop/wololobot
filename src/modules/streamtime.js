@@ -192,16 +192,25 @@ export default function(opts) {
             reject(err)
           } else {
             streams = []
-            foundPanel = panels.some(panel => {
-              if ((panel.data.title !== void 0 &&
-                  panel.data.title.toLowerCase() === 'schedule') ||
-                  panel.data.image === opts.schedImage) {
-                streams = parseSchedule(strip(panel.html_description))
-                debug(strip(panel.html_description))
-                return true
+            try {
+              foundPanel = panels.some(panel => {
+                if ((panel.data.title !== void 0 &&
+                    panel.data.title.toLowerCase() === 'schedule') ||
+                    panel.data.image === opts.schedImage) {
+                  streams = parseSchedule(strip(panel.html_description))
+                  debug(strip(panel.html_description))
+                  return true
+                }
+              })
+              resolve()
+            } catch (e) {
+              if (!(e instanceof TypeError)) {
+                throw e
               }
-            })
-            resolve()
+              // Probably an Internal Server Error of sorts, just ignore that.
+              debug(`An error occured while trying to get the panels: ${e}`)
+              reject(e)
+            }
           }
         }
       )
