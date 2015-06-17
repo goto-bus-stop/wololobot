@@ -34,7 +34,7 @@ export default function wololobot(opts) {
 
   let bot = irc(stream, parser)
   bot.use(command())
-  bot.use(users())
+  bot.use(users({ channels: [channel.slice(1)] }))
   bot.use(twitch({ init: true, tags: true }))
   bot.use(twitchLiveStatus({ channel: channel.slice(1) }))
   bot.use(twitchSubs({ channel: channel.slice(1)
