@@ -5,7 +5,7 @@ import { connect } from 'net'
 import command from './command'
 import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
-import twitchUsers from './users'
+import twitchUsers from './twitch-users'
 import twitchLiveStatus from './twitch-live-status'
 import twitchSubs from './twitch-subs'
 
