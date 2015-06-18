@@ -16,7 +16,7 @@ export default function main(confile = 'config.json') {
   const channel = (conf.channel[0] === '#') ? conf.channel.slice(1) : conf.channel
   const wb = wololobot(conf)
   wb.use(version())
-  wb.use(florins({ channel: channel, db: db }))
+  wb.use(florins({ db: db }))
   wb.use(raffle())
   wb.use(bets())
   wb.use(reddit(conf.reddit))

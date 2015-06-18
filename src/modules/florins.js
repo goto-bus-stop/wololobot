@@ -78,7 +78,7 @@ export default function (opts) {
     }
 
     function gain() {
-      let users = bot.users(opts.channel)
+      let users = bot.users()
       transactions(users.map(u => {
         let sub = bot.isSubscriber && bot.isSubscriber(u.name)
         return { username: u.name

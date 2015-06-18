@@ -5,7 +5,7 @@ import { connect } from 'net'
 import command from './command'
 import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
-import users from './users'
+import twitchUsers from './users'
 import twitchLiveStatus from './twitch-live-status'
 import twitchSubs from './twitch-subs'
 
@@ -34,7 +34,7 @@ export default function wololobot(opts) {
 
   let bot = irc(stream, parser)
   bot.use(command())
-  bot.use(users({ channels: [channel.slice(1)] }))
+  bot.use(twitchUsers({ channels: [ channel.slice(1) ] }))
   bot.use(twitch({ init: true, tags: true }))
   bot.use(twitchLiveStatus({ channel: channel.slice(1) }))
   bot.use(twitchSubs({ channel: channel.slice(1)

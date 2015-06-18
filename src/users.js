@@ -8,6 +8,7 @@ export default function users(opts) {
   opts = assign({ interval: 1 * 60 * 1000 }, opts)
 
   const updateUsers = (channel, client) => {
+    let ircChannel = `#${channel}`
     return new Promise((resolve, reject) => {
       request(
         { uri: `http://tmi.twitch.tv/group/user/${channel}/chatters`
@@ -20,7 +21,7 @@ export default function users(opts) {
           } else {
             try {
               let chatters = body.chatters
-              client._users[channel] = chatters.moderators.concat(
+              client._users[ircChannel] = chatters.moderators.concat(
                 chatters.staff, chatters.admins, chatters.global_mods,
                 chatters.viewers
               ).map(nick => { return { name: nick, mode: '' } })
