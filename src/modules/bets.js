@@ -207,6 +207,9 @@ export default function bets(opts) {
         return
       if (!bot.bet)
         return bot.send(`@${uname} No bets are open right now.`)
+      if (!option)
+        return bot.send(`@${uname} You must provide an option to bet on. ` +
+                        `(!bet [option] [florins])`)
       if (!bot.bet.valid(option))
         return bot.send(`@${uname} Betting option "${option}" does not exist.`)
       if (isNaN(florins) || florins < 0)
