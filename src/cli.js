@@ -13,17 +13,14 @@ import sex from './modules/sex'
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
   const db = knex(conf.database)
-
+  const channel = (conf.channel[0] === '#') ? conf.channel.slice(1) : conf.channel
   const wb = wololobot(conf)
   wb.use(version())
-  wb.use(florins({ db: db }))
+  wb.use(florins({ channel: channel, db: db }))
   wb.use(raffle())
   wb.use(bets())
   wb.use(reddit(conf.reddit))
-  wb.use(streamtime({ channel: (conf.channel[0] === '#') ?
-                                 conf.channel.slice(1)
-                               : conf.channel
-                    , db: db }))
+  wb.use(streamtime({ channel: channel , db: db }))
   wb.use(drawing())
   wb.use(sex())
 
