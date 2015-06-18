@@ -181,10 +181,10 @@ export default function(opts) {
       .catch(e => { throw e })
   }
 
-  function getTimes() {
+  function getTimes(channel) {
     return new Promise((resolve, reject) => {
       request(
-        { uri: `https://api.twitch.tv/api/channels/${opts.channel}/panels`
+        { uri: `https://api.twitch.tv/api/channels/${channel.slice(1)}/panels`
         , json: true },
         (err, res, panels = []) => {
           if (err) {
@@ -232,9 +232,6 @@ export default function(opts) {
     }
     return next
   }
-
-  getTimes()
-  setInterval(getTimes, opts.updateInterval);
 
   return function(bot) {
 
@@ -311,7 +308,7 @@ export default function(opts) {
     bot.command('!streamtime update'
                 , { throttle: 10000 }
                 , (message) => {
-      getTimes()
+      getTimes(bot.channel)
         .then(() => bot.send(`@${message.user} Updated.`))
         .catch(err => bot.send(`@${message.user} Couldn't update streamtimes.`))
     })
@@ -354,6 +351,9 @@ export default function(opts) {
       let desc = exAssign(next[2], 'Stream')
       return bot.send(`${desc} in ${countdown(next[0]).toString()}`)
     })
+
+    getTimes(bot.channel)
+    setInterval(() => getTimes(bot.channel), opts.updateInterval);
 
   }
 
