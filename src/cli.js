@@ -10,6 +10,7 @@ import streamtime from './modules/streamtime'
 import drawing from './modules/drawing'
 import sex from './modules/sex'
 import mute from './modules/mute'
+import waffle from './modules/waffle'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
@@ -24,6 +25,7 @@ export default function main(confile = 'config.json') {
   wb.use(drawing())
   wb.use(sex())
   wb.use(mute({ username: conf.username }))
+  wb.use(waffle())
 
   return wb
 }
