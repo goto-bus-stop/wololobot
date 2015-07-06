@@ -9,6 +9,7 @@ import reddit from './modules/reddit'
 import streamtime from './modules/streamtime'
 import drawing from './modules/drawing'
 import sex from './modules/sex'
+import waffle from './modules/waffle'
 
 export default function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
@@ -22,6 +23,7 @@ export default function main(confile = 'config.json') {
   wb.use(streamtime({ db: db }))
   wb.use(drawing())
   wb.use(sex())
+  wb.use(waffle())
 
   return wb
 }
