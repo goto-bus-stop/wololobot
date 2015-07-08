@@ -6,7 +6,9 @@ const debug = require('debug')('wololobot:random-reddit')
 const withFullStop = str => '.,…!?‽'.indexOf(str.substr(-1)) === -1? str + '.'
                           : /* already has a punctuation mark */     str
 
+const getTitle = l => l.data.title
 const sanitiseTitle = title => withFullStop(title.trim().replace(/^"|^,,|"$/g, ''))
+const titles = posts => (posts || []).map(getTitle).map(sanitiseTitle)
 const enquote = str => `"${str}"`
 
 const quote = sub => {
@@ -15,9 +17,9 @@ const quote = sub => {
       { uri: `https://www.reddit.com/r/${sub}/random.json?_=${Math.random()}`
       , json: true },
       (err, res, [ json = null ] = []) => {
-          err?          reject(err)
-        : json == null? reject(new Error('No reddit posts found.'))
-        : /* else */    resolve(json.data.children.map(l => l.data.title).map(sanitiseTitle))
+          err?       reject(err)
+        : json.data? resolve(titles(json.data.children))
+        : /* else */ reject(new Error('No reddit posts found.'))
       }
     )
   })
