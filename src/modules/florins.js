@@ -9,6 +9,7 @@ export default function (opts) {
   , gain: 5 // 5 florins per 10 minutes
   , subGain: 10 // 10 florins per 10 minutes
   , gainInterval: 10 * 60 * 1000 // 10 minutes
+  , excludeMods: false
   }, opts)
 
   const { db } = opts
@@ -127,14 +128,21 @@ export default function (opts) {
 
     bot.command('!top', (message, n = 3) => {
       if (n > 15) n = 15
-      db('transactions')
-        .select('username', db.raw('lower(username) as lname'))
-        .sum('amount as wallet')
-        .groupBy('lname')
-        .orderBy('wallet', 'desc')
-        .limit(n)
-        .reduce((list, u, i) => list.concat([ `#${i + 1}) ${u.username} - ${u.wallet}` ]), [])
-        .then(list => bot.send(`@${message.user} Top florins: ` + list.join(', ')))
+      bot.mods(moderators => {
+        let q = db('transactions')
+          .select('username', db.raw('lower(username) as lname'))
+          .sum('amount as wallet')
+        if (opts.excludeMods) {
+          q = q.whereNotIn('lname', [ bot.channel.slice(1), ...moderators ]
+                                      .map(name => name.toLowerCase()))
+        }
+        q
+          .groupBy('lname')
+          .orderBy('wallet', 'desc')
+          .limit(n)
+          .reduce((list, u, i) => list.concat([ `#${i + 1}) ${u.username} - ${u.wallet}` ]), [])
+          .then(list => bot.send(`@${message.user} Top florins: ` + list.join(', ')))
+      })
     })
   }
 }
