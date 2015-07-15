@@ -25,47 +25,38 @@ export default function bets(opts) {
     db.schema.createTableIfNotExists('bet_options', (table) => {
       table.string('name').primary()
       table.string('represents')
-    }).then(() => {
-      debug('created table bet_options')
-      db('bet_options').del().then(() =>
+    })
+      .tap(() => debug('created table bet_options'))
+      .then(() => db('bet_options').del())
+      .then(() =>
         db('bet_options').insert(Object.keys(options).map(name => {
           return { name: name, represents: options[name] }
         }))
-      ).catch(e => {
-        throw e
-      })
-    }).catch(e => {
-      throw e
-    })
+      )
+      .catch(e => { throw e })
+    let __entries
     db.schema.createTableIfNotExists('bet_entries', (table) => {
       table.string('user').primary()
       table.string('option')
       table.integer('florins')
-    }).then(() => {
-      debug('created table bet_entries')
-      let __entries = Object.keys(_entries).map(lname => _entries[lname])
-      if (__entries.length === 0)
-        return
-      db('bet_entries').del().then(() =>
-        db('bet_entries').insert(__entries)
-      ).catch(e => {
-        throw e
-      })
-    }).catch(e => {
-      throw e
     })
+      .tap(() => debug('created table bet_entries'))
+      .then(() => {
+        __entries = Object.keys(_entries).map(lname => _entries[lname])
+        db('bet_entries').del()
+      })
+      .then(() => {
+        if (__entries.length === 0) return
+        db('bet_entries').insert(__entries)
+      })
+      .catch(e => { throw e })
     db.schema.createTableIfNotExists('bet_status', (table) => {
       table.string('status').primary()
-    }).then(() => {
-      debug('created table bet_status')
-      db('bet_status').del().then(() =>
-        db('bet_status').insert({ status: status })
-      ).catch(e => {
-        throw e
-      })
-    }).catch(e => {
-      throw e
     })
+      .tap(() => debug('created table bet_status'))
+      .then(() => db('bet_status').del())
+      .then(() => db('bet_status').insert({ status: status }))
+      .catch(e => { throw e })
 
     const optionNames = Object.keys(options).map(n => n.toLowerCase())
 
@@ -138,7 +129,9 @@ export default function bets(opts) {
       user = user.toLowerCase()
       if (status !== 'open')
         return Promise.reject(new Error(`No bets are open right now.`))
-      if (user in _entries) delete _entries[user]
+      if (user in _entries)
+        db('bet_entries').where({ user: _entries[user].user }).del()
+          .then(() => delete _entries[user])
       return Promise.resolve()
     }
     function _options() {
