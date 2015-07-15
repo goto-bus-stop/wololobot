@@ -56,7 +56,7 @@ export default function () {
       if (opts.throttle)
         execute = debounce(execute, opts.throttle, true)
 
-      let re = new RegExp(`^${command}\\b`)
+      let re = new RegExp(`^${command}\\b`, 'i')
 
       let cb = message => {
         if (message.command !== 'PRIVMSG') return
