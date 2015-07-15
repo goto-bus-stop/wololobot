@@ -10,7 +10,7 @@ const parse = str => {
   let rx = /([a-z]+)\)(.*?)(?:\s[a-z]+\)|$)/g
   let match
   let options = {}
-  while (match = rx.exec(str)) {
+  while ((match = rx.exec(str))) {
     rx.lastIndex -= match[1].length + 2
     options[ match[1].toLowerCase() ] = match[2].trim()
   }
@@ -19,10 +19,55 @@ const parse = str => {
 
 export default function bets(opts) {
 
-  function bet(bot, options) {
+  const { db } = opts
+
+  function bet(bot, options, status = 'open', _entries = {}) {
+    db.schema.createTableIfNotExists('bet_options', (table) => {
+      table.string('name').primary()
+      table.string('represents')
+    }).then(() => {
+      debug('created table bet_options')
+      db('bet_options').del().then(() =>
+        db('bet_options').insert(Object.keys(options).map(name => {
+          return { name: name, represents: options[name] }
+        }))
+      ).catch(e => {
+        throw e
+      })
+    }).catch(e => {
+      throw e
+    })
+    db.schema.createTableIfNotExists('bet_entries', (table) => {
+      table.string('user').primary()
+      table.string('option')
+      table.integer('florins')
+    }).then(() => {
+      debug('created table bet_entries')
+      let __entries = Object.keys(_entries).map(lname => _entries[lname])
+      if (__entries.length === 0)
+        return
+      db('bet_entries').del().then(() =>
+        db('bet_entries').insert(__entries)
+      ).catch(e => {
+        throw e
+      })
+    }).catch(e => {
+      throw e
+    })
+    db.schema.createTableIfNotExists('bet_status', (table) => {
+      table.string('status').primary()
+    }).then(() => {
+      debug('created table bet_status')
+      db('bet_status').del().then(() =>
+        db('bet_status').insert({ status: status })
+      ).catch(e => {
+        throw e
+      })
+    }).catch(e => {
+      throw e
+    })
+
     const optionNames = Object.keys(options).map(n => n.toLowerCase())
-    let status = 'open'
-    let _entries = {}
 
     function entries() {
       return Object.keys(_entries).map(u => _entries[u])
@@ -33,6 +78,7 @@ export default function bets(opts) {
     function close() {
       debug('close', pool())
       status = 'closed'
+      db('bet_status').update({ status: status }).catch(e => {throw e})
     }
     function closed() {
       return status === 'closed'
@@ -50,7 +96,9 @@ export default function bets(opts) {
         debug('enter', florins, wallet)
         if (wallet.florins < florins)
           return Promise.reject(new Error('You don\'t have that many florins.'))
-        return _entries[luser] = { user, option, florins }
+        db('bet_entries').where({ user }).del().catch(e => {throw e})
+        db('bet_entries').insert({ user, option, florins }).catch(e => {throw e})
+        return (_entries[luser] = { user, option, florins })
       })
     }
     function pool() {
@@ -71,6 +119,11 @@ export default function bets(opts) {
       , payout: Math.ceil(e.florins / winningBets * total)
       }))
 
+      db.schema.dropTable('bet_options')
+        .dropTable('bet_entries')
+        .dropTable('bet_status')
+        .then(() => debug('dropped betting tables'))
+        .catch(e => {throw e})
       return bot.transactions(
         entries().map(e => ({ username: e.user
                             , amount: -e.florins
@@ -113,6 +166,29 @@ export default function bets(opts) {
   }
 
   return function (bot) {
+
+    let last_options = {}
+    let last_entries = {}
+    let last_status
+
+    db.schema.hasTable('bet_options').then(exists => {
+      if (!exists) return
+      db('bet_options').select('name', 'represents').then(options => {
+        options.forEach(option => {
+          last_options[option.name] = option.represents
+        })
+        db('bet_entries').select('user', 'option', 'florins').then(bets => {
+          bets.forEach(bet => {
+            last_entries[bet.user.toLowerCase()] = {
+              user: bet.user, option: bet.option, florins: bet.florins }
+          })
+          db('bet_status').select('status').then(status => {
+            last_status = status[0].status
+            bot.bet = bet(bot, last_options, last_status, last_entries)
+          })
+        })
+      })
+    })
 
     bot.command('!bet open'
                , { rank: 'mod' }
