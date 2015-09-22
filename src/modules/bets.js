@@ -43,11 +43,11 @@ export default function bets(opts) {
       .tap(() => debug('created table bet_entries'))
       .then(() => {
         __entries = Object.keys(_entries).map(lname => _entries[lname])
-        db('bet_entries').del()
+        return db('bet_entries').del()
       })
       .then(() => {
         if (__entries.length === 0) return
-        db('bet_entries').insert(__entries)
+        return db('bet_entries').insert(__entries)
       })
       .catch(e => { throw e })
     db.schema.createTableIfNotExists('bet_status', (table) => {
@@ -88,7 +88,8 @@ export default function bets(opts) {
         if (wallet.florins < florins)
           return Promise.reject(new Error('You don\'t have that many florins.'))
         db('bet_entries').where({ user }).del().catch(e => {throw e})
-        db('bet_entries').insert({ user, option, florins }).catch(e => {throw e})
+          .then(() => db('bet_entries').insert({ user, option, florins }))
+          .catch(e => {throw e})
         return (_entries[luser] = { user, option, florins })
       })
     }
