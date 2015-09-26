@@ -17,7 +17,7 @@ export default function main(confile = 'config.json') {
   wb.use(version())
   wb.use(florins({ db: db }))
   wb.use(raffle())
-  wb.use(bets())
+  wb.use(bets({ db: db }))
   wb.use(reddit(conf.reddit))
   wb.use(streamtime({ db: db }))
   wb.use(drawing())
