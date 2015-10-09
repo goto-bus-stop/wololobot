@@ -37,7 +37,7 @@ const parseTimezone = str => {
 }
 
 const parseMonth = str => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-  'Sep', 'Nov', 'Dec'].indexOf(str.substring(0, 3))
+  'Sep', 'Oct', 'Nov', 'Dec'].indexOf(str.substring(0, 3))
 
 const invDate = usr => `@${usr} Couldn't parse time - Use \`!streamtime `+
                        `overwrite_time YYYY-MM-DD hh:mm [AM|PM] [timezone]`
