@@ -6,4 +6,7 @@
 , "database":
   { "dialect": "sqlite3"
   , "connection": { "filename": "wololobot.sqlite" } }
+, "reddit":
+  { "sub": "all"
+  , "min_karma": 3 }
 }
