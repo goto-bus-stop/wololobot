@@ -8,6 +8,7 @@ import defaultChannel from './default-channel'
 import twitchUsers from './twitch-users'
 import twitchLiveStatus from './twitch-live-status'
 import twitchSubs from './twitch-subs'
+import twitchWhispers from './twitch-whispers'
 
 import 'babel/polyfill'
 
@@ -39,6 +40,7 @@ export default function wololobot(opts) {
   bot.use(twitchLiveStatus({ channel: channel.slice(1) }))
   bot.use(twitchSubs({ channel: channel.slice(1)
                      , token: '' }))
+  bot.use(twitchWhispers(opts))
 
   bot.channel = channel
 
