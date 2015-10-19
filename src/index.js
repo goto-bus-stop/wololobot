@@ -2,6 +2,7 @@ import knex from 'knex'
 import irc from 'slate-irc'
 import { createStream as ircparser } from 'irc-message'
 import { connect } from 'net'
+import debounce from 'debounce'
 import command from './command'
 import twitch from 'slate-irc-twitch'
 import defaultChannel from './default-channel'
@@ -54,6 +55,9 @@ export default function wololobot(opts) {
   bot.on('motd', () => {
     bot.mods(channel)
   })
+  bot.on('mode', debounce(() => {
+    bot.mods(channel)
+  }, 1000))
 
   return bot
 }
