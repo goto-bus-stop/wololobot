@@ -17,7 +17,7 @@ export default function main(confile = 'config.json') {
   const db = knex(conf.database)
   const wb = wololobot(conf)
   wb.use(version())
-  wb.use(florins({ db: db }))
+  wb.use(florins({ db: db, excludeMods: true }))
   wb.use(raffle())
   wb.use(bets({ db: db }))
   wb.use(reddit(conf.reddit))
