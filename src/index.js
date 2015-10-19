@@ -51,7 +51,9 @@ export default function wololobot(opts) {
   bot.user(opts.username, opts.username)
   bot.join(channel)
 
-  bot.mods()
+  bot.on('motd', () => {
+    bot.mods(channel)
+  })
 
   return bot
 }
