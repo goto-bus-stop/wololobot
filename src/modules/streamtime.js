@@ -54,7 +54,7 @@ const parseSchedule = str => {
   }
   let streams = Array()
   let regexes = [
-    /(\d+)(?:st|nd|rd|th)? +([A-Za-z]+)( +\d{4})? *: *(\d+)(?::(\d+))?(AM|PM)?(?: *- *(\d+)(?::(\d+))?(AM|PM)?)?(?: *\| *(.+))/, // ZeroEmpires format
+    /(\d+)(?:st|nd|rd|th)? +([A-Za-z]+)( +\d{4})? *:? *(\d+)(?::(\d+))?(AM|PM)?(?: *- *(\d+)(?::(\d+))?(AM|PM)?)?(?: *\| *(.+))/, // ZeroEmpires format
     / *-* *([A-Za-z]+) +(\d+) *(\d{4})? *: *(.*?) +at +(\d+):(\d+) *(AM|PM) *\(([A-Za-z]+)\) *\(.*?\)/ // Resonance22 format
   ]
   lines.forEach(line => {
