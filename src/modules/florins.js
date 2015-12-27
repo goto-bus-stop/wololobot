@@ -16,8 +16,8 @@ export default function (opts) {
 
   db.schema.createTableIfNotExists('transactions', t => {
     t.increments('id').primary()
-    t.string('username', 50)
-    t.integer('amount')
+    t.string('username', 50).index()
+    t.integer('amount').index()
     t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
     t.text('description')
   }).then(() => { debug('created table') })
