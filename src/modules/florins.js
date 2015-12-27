@@ -52,7 +52,10 @@ export default function (opts) {
                                      , description: description })
   }
   function transactions(list) {
-    return Promise.all(list.map(t => transaction(t.username, t.amount, t.description)))
+    const inserts = list.map(t => ({ username: t.username.toLowerCase()
+                                   , amount: t.amount
+                                   , description: t.description || '' }))
+    return db('transactions').insert(inserts)
   }
 
   return function (bot) {
