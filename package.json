@@ -1,6 +1,6 @@
 { "private": true
 , "name": "wololobot"
-, "version": "2.3.1"
+, "version": "2.4.0"
 , "main": "./lib/index"
 , "bin": "./bin/wololobot"
 , "dependencies":
