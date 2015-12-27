@@ -101,15 +101,17 @@ export default function (opts) {
       gain()
     })
 
-    bot.command('!florins', (message, username = null) => {
-      if (!username) {
-        username = message.user
+    bot.command('!florins', (message, ...usernames) => {
+      if (!usernames.length) {
+        usernames = [ message.user ]
       }
-      if (florinsChecks.indexOf(username) === -1) {
-        florinsChecks.push(username)
-        if (!florinsTimeout) {
-          florinsTimeout = setTimeout(respondFlorins, opts.delay)
+      usernames.forEach(username => {
+        if (florinsChecks.indexOf(username) === -1) {
+          florinsChecks.push(username)
         }
+      })
+      if (!florinsTimeout) {
+        florinsTimeout = setTimeout(respondFlorins, opts.delay)
       }
     })
 
