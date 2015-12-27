@@ -126,7 +126,7 @@ export default function (opts) {
       }
     })
 
-    bot.command('!top', (message, n = 3) => {
+    const topCommand = opts => (message, n = 3) => {
       if (n > 15) n = 15
       let q = db('transactions')
         .select('username', db.raw('lower(username) as lname'))
@@ -141,6 +141,9 @@ export default function (opts) {
         .limit(n)
         .reduce((list, u, i) => list.concat([ `#${i + 1}) ${u.username} - ${u.wallet}` ]), [])
         .then(list => bot.send(`@${message.user} Top florins: ` + list.join(', ')))
-    })
+    }
+
+    bot.command('!top', topCommand({ excludeMods: opts.excludeMods }))
+    bot.command('!topwithmods', topCommand({ excludeMods: false }))
   }
 }
