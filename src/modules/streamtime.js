@@ -218,12 +218,12 @@ export default function(opts) {
   }
 
   function getNext() {
-    let next = Infinity
+    let next = [Infinity]
     let now = new Date()
     streams.some(stream => {
       let start = new Date(stream[0])
       start.setMinutes(start.getMinutes() + opts.lateBy)
-      if (start < next && start > now) {
+      if (start < next[0] && start > now) {
         next = stream
       }
     })
