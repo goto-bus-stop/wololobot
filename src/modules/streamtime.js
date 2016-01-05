@@ -227,10 +227,7 @@ export default function(opts) {
         next = stream
       }
     })
-    if (next === Infinity) {
-      return null
-    }
-    return next
+    return isFinite(next[0]) ? next : null
   }
 
   return function(bot) {
