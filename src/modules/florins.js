@@ -14,14 +14,19 @@ export default function (opts) {
 
   const { db } = opts
 
-  db.schema.createTableIfNotExists('transactions', t => {
-    t.increments('id').primary()
-    t.string('username', 50).index()
-    t.integer('amount').index()
-    t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
-    t.text('description')
-  }).then(() => { debug('created table') })
-    .catch(e => { throw e })
+  db.schema.hasTable('transactions', exists => {
+    if (exists) return debug('`transactions` table exists')
+
+    db.schema.createTable('transactions', t => {
+      t.increments('id').primary()
+      t.string('username', 50).index()
+      t.integer('amount').index()
+      t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
+      t.text('description')
+    })
+      .then(() => debug('created table'))
+      .catch(e => { throw e })
+  })
 
   function florinsOf(user) {
     debug('florinsOf', user)
