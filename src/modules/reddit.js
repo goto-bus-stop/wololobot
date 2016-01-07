@@ -1,4 +1,5 @@
 import assign from 'object-assign'
+import Promise from 'bluebird'
 import request from 'request'
 
 const debug = require('debug')('wololobot:random-reddit')
@@ -6,53 +7,38 @@ const debug = require('debug')('wololobot:random-reddit')
 const withFullStop = str => '.,…!?‽'.indexOf(str.substr(-1)) === -1? str + '.'
                           : /* already has a punctuation mark */     str
 
-const getTitle = l => l.data.title
-const sanitiseTitle = title => withFullStop(title.trim().replace(/^"|^,,|"$/g, ''))
-const titles = posts => (posts || []).map(getTitle).map(sanitiseTitle)
+const cleanTitle = title => withFullStop(title.trim().replace(/^"|^,,|"$/g, ''))
 const enquote = str => `"${str}"`
 
-const getQuotes = (sub, min_karma, after = null) => {
-  return new Promise((resolve, reject) => {
-    request(
-      { uri: `https://www.reddit.com/r/${sub}/top/.json?t=all&after=${after}`
-      , json: true },
-      (err, res, json = {}) => {
-        if (err) {
-          reject(err)
-        } else if (json.data) {
-          let quotes = titles(json.data.children.filter(quote => quote.data.ups >= min_karma))
-          debug(`Got ${quotes.length} quotes (after ${after})`)
-          if (json.data.after) {
-            debug(`Getting quotes after ${json.data.after}`)
-            getQuotes(sub, min_karma, json.data.after)
-              .then(moreQuotes => resolve(quotes.concat(moreQuotes)))
-          } else {
-            resolve(quotes)
-          }
-        }
-      }
+const requestP = (...args) => new Promise((resolve, reject) =>
+  request(...args, (err, res) => err?    reject(err)
+                               : /* _ */ resolve(res)))
+
+const getNextQuote = (sub, minKarma, attempts = 0) =>
+  requestP({ uri: `https://www.reddit.com/r/${sub}/random.json?_=${Math.random()}`
+           , json: true })
+    // weeeh. property.access.is.so.much.fun()
+    .then(res => res.body[0].data.children[0].data)
+    .then(post =>
+      attempts < 5 && post.ups < minKarma? getNextQuote(sub, minKarma, attempts + 1)
+    : /* otherwise, accept a bad quote */  cleanTitle(post.title)
     )
-  })
-}
 
 export default function (opts) {
   opts = assign({
     sub: 'random'
   , min_karma: 1
-  , update_interval: 5 * 60 * 1000
   }, opts)
 
-  let quotes = []
-
-  let updateQuotes = () => getQuotes(opts.sub, opts.min_karma).then(quotes_ => quotes = quotes_)
-  updateQuotes()
-  setInterval(updateQuotes, opts.update_interval)
-
-  let quote = () => enquote(quotes[Math.floor(Math.random() * quotes.length)])
+  let quote = getNextQuote(opts.sub, opts.min_karma)
 
   return function reddit(bot) {
-    bot.command('!quote', (message) => {
-      bot.action(quote())
+    bot.command('!quote', { throttle: 2000 }, (message) => {
+      quote
+        .then(enquote)
+        .then(bot.action.bind(bot))
+        .catch(e => { bot.send(`@${message.user} Could not find quote: ${e.message}`) })
+      quote = getNextQuote(opts.sub, opts.min_karma)
     })
   }
 }
