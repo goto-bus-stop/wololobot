@@ -52,15 +52,18 @@ export default function (opts) {
       })
   }
   function transaction(username, amount, description = '') {
-    return db('transactions').insert({ username: username.toLowerCase()
-                                     , amount: amount
-                                     , description: description })
+    return db('transactions')
+      .insert({ username: username.toLowerCase()
+              , amount: amount
+              , description: description })
+      .then(() => debug(`Added ${amount} florins to ${username}`))
   }
   function transactions(list) {
     const inserts = list.map(t => ({ username: t.username.toLowerCase()
                                    , amount: t.amount
                                    , description: t.description || '' }))
     return db('transactions').insert(inserts)
+      .then(() => debug(`Added florins to ${inserts.length} users.`))
   }
 
   return function (bot) {
