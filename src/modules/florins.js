@@ -14,7 +14,7 @@ export default function (opts) {
 
   const { db } = opts
 
-  db.schema.hasTable('transactions', exists => {
+  db.schema.hasTable('transactions').then(exists => {
     if (exists) return debug('`transactions` table exists')
 
     db.schema.createTable('transactions', t => {
