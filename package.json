@@ -4,8 +4,9 @@
 , "main": "./lib/index"
 , "bin": "./bin/wololobot"
 , "dependencies":
-  { "array-findindex": ""
+  { "array-findindex": "^0.1.0"
   , "bluebird": "^2.9.26"
+  , "chunk": "^0.0.2"
   , "countdown": "mckamey/countdownjs#v2.5.2"
   , "debounce": "^1.0.0"
   , "debug": "^2.2.0"

@@ -1,5 +1,6 @@
 import assign from 'object-assign'
 import Promise from 'bluebird'
+import chunk from 'chunk'
 
 const debug = require('debug')('wololobot:florins')
 
@@ -62,7 +63,12 @@ export default function (opts) {
     const inserts = list.map(t => ({ username: t.username.toLowerCase()
                                    , amount: t.amount
                                    , description: t.description || '' }))
-    return db('transactions').insert(inserts)
+
+    return chunk(inserts, 50)
+      .reduce(
+        (p, entries) => p.then(() => db('transactions').insert(entries)),
+        Promise.resolve()
+      )
       .then(() => debug(`Added florins to ${inserts.length} users.`))
   }
 
