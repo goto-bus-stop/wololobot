@@ -1,26 +1,37 @@
-{ "private": true
-, "name": "wololobot"
-, "version": "2.4.3"
-, "main": "./lib/index"
-, "bin": "./bin/wololobot"
-, "dependencies":
-  { "array-findindex": ""
-  , "bluebird": "^2.9.26"
-  , "countdown": "mckamey/countdownjs#v2.5.2"
-  , "debounce": "^1.0.0"
-  , "debug": "^2.2.0"
-  , "irc-message": "^3.0.2"
-  , "knex": "^0.9.0"
-  , "object-assign": "^2.1.1"
-  , "request": "^2.67.0"
-  , "slate-irc": "^0.8.1"
-  , "slate-irc-twitch": "^1.0.2"
-  , "sqlite3": "^3.0.5"
-  , "strip": "^0.0.7"
-  , "timezone-abbr-offsets": "^1.0.1" }
-, "devDependencies":
-  { "babel": "^5.8.35" }
-, "scripts":
-  { "babel": "./node_modules/.bin/babel --out-dir lib src"
-  , "start": "DEBUG=wololobot:* ./bin/wololobot" }
+{
+  "private": true,
+  "name": "wololobot",
+  "version": "2.4.3",
+  "main": "./lib/index",
+  "bin": "./bin/wololobot",
+  "dependencies": {
+    "array-findindex": "",
+    "babel-polyfill": "^6.7.4",
+    "bluebird": "^2.9.26",
+    "countdown": "mckamey/countdownjs#v2.5.2",
+    "debounce": "^1.0.0",
+    "debug": "^2.2.0",
+    "irc-message": "^3.0.2",
+    "knex": "^0.9.0",
+    "object-assign": "^2.1.1",
+    "request": "^2.67.0",
+    "slate-irc": "^0.8.1",
+    "slate-irc-twitch": "^1.0.2",
+    "sqlite3": "^3.0.5",
+    "strip": "^0.0.7",
+    "timezone-abbr-offsets": "^1.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.7.5",
+    "babel-preset-es2015-node4": "^2.1.0"
+  },
+  "babel": {
+    "presets": [
+      "es2015-node4"
+    ]
+  },
+  "scripts": {
+    "babel": "babel --out-dir lib src",
+    "start": "DEBUG=wololobot:* ./bin/wololobot"
+  }
 }

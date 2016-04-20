@@ -10,7 +10,7 @@ import twitchUsers from './twitch-users'
 import twitchLiveStatus from './twitch-live-status'
 import twitchSubs from './twitch-subs'
 
-import 'babel/polyfill'
+import 'babel-polyfill'
 
 const debug = require('debug')('wololobot:main')
 
