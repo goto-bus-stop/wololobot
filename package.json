@@ -31,6 +31,7 @@
     ]
   },
   "scripts": {
+    "postinstall": "npm run babel",
     "babel": "babel --out-dir lib src",
     "start": "DEBUG=wololobot:* ./bin/wololobot"
   }
