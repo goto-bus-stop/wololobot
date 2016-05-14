@@ -12,7 +12,7 @@
     "debounce": "^1.0.0",
     "debug": "^2.2.0",
     "irc-message": "^3.0.2",
-    "knex": "^0.10.0",
+    "knex": "^0.11.2",
     "object-assign": "^4.0.1",
     "request": "^2.67.0",
     "slate-irc": "^0.8.1",
