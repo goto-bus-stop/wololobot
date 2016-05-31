@@ -1,6 +1,8 @@
 wololobot
 =========
 
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
 Chat bot for the ZeroEmpires Twitch.tv stream, with loyalty stream currency
 (florins), bets, and raffles.
 
