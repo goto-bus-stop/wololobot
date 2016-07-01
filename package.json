@@ -6,7 +6,7 @@
   "bin": "./bin/wololobot",
   "dependencies": {
     "array-findindex": "",
-    "babel-polyfill": "^6.7.4",
+    "babel-polyfill": "^6.8.0",
     "bluebird": "^3.3.5",
     "countdown": "mckamey/countdownjs#v2.5.2",
     "debounce": "^1.0.0",
