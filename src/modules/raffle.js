@@ -1,4 +1,5 @@
 const Promise = require('bluebird')
+const delay = require('delay')
 const debug = require('debug')('wololobot:raffle')
 
 const openUsage = '!raffle open [price] [max tickets] [?winners]'
@@ -10,44 +11,55 @@ module.exports = function (opts) {
   function raffle (bot, price, maxTickets, winnersNeeded) {
     let _entries = {}
 
-    function enter (user, tickets) {
-      if (isNaN(tickets) || tickets < 0) { return Promise.reject(new Error('Invalid number of tickets.')) }
-      if (tickets > maxTickets) { return Promise.reject(new Error(`Cannot enter with more than ${maxTickets} tickets.`)) }
+    async function enter (user, tickets) {
+      if (isNaN(tickets) || tickets < 0) {
+        throw new Error('Invalid number of tickets.')
+      }
+      if (tickets > maxTickets) {
+        throw new Error(`Cannot enter with more than ${maxTickets} tickets.`)
+      }
 
       let luser = user.toLowerCase()
       if (tickets === 0) {
         delete _entries[luser]
-        return Promise.resolve({ user, tickets: 0 })
+        return { user, tickets: 0 }
       }
 
-      return bot.florinsOf(user).then(wallet => {
-        if (wallet.florins < tickets * price) { return Promise.reject(new Error('You don\'t have that many florins.')) }
+      const wallet = await bot.florinsOf(user)
+      if (wallet.florins < tickets * price) {
+        throw new Error('You don\'t have that many florins.')
+      }
 
-        _entries[luser] = { user, tickets }
-        return _entries[luser]
-      })
+      _entries[luser] = { user, tickets }
+      return _entries[luser]
     }
+
     function entries () {
-      return Object.keys(_entries).map(u => _entries[u])
+      return Object.keys(_entries).map((user) => _entries[user])
     }
+
     function tickets (user) {
       return (_entries[user.toLowerCase()] || {}).tickets
     }
+
     function entryValue (user) {
-      let t = tickets(user)
+      const t = tickets(user)
       return t ? price * t : 0
     }
+
     function totalTickets () {
-      return entries().map(entry => entry.tickets).reduce(sum)
+      return entries().map((entry) => entry.tickets).reduce(sum)
     }
-    function end () {
+
+    async function end () {
       // find winners
       let availableTickets = totalTickets()
       let availableEntries = entries()
       let winners = []
       if (availableEntries < winnersNeeded || totalTickets === 0) {
-        return Promise.reject(new Error('Not enough entries to pick a winner!'))
+        throw new Error('Not enough entries to pick a winner!')
       }
+
       while (winners.length < winnersNeeded) {
         // pick winning ticket
         let winningTicket = Math.floor(availableTickets * Math.random())
@@ -64,16 +76,20 @@ module.exports = function (opts) {
           }
         }
       }
+
       debug('winners', winners)
 
-      return bot.transactions(
-        entries().map(entry => ({
+      await bot.transactions(
+        entries().map((entry) => ({
           username: entry.user,
           amount: -(entry.tickets * price),
           description: `${entry.tickets} raffle tickets`
         }))
-      ).return(winners)
+      )
+
+      return winners
     }
+
     function stop () {
       _entries = {}
     }
@@ -83,36 +99,34 @@ module.exports = function (opts) {
 
   return function (bot) {
     bot.command('!raffle', { rank: 'mod' }, (message, command) => {
-      if (command === 'open' || command === 'close' || command === 'stop') {
+      if (['open', 'close', 'stop'].includes(command)) {
         return
       }
 
       const mname = message.user
       bot.send(`@${mname} !raffle Usage:`)
       bot.send(`${openUsage} - Opens a raffle.`)
-      bot.send(`!raffle close - Closes a raffle and picks a winner.`)
-      bot.send(`!raffle stop - Stops a raffle and refunds florins.`)
+      bot.send('!raffle close - Closes a raffle and picks a winner.')
+      bot.send('!raffle stop - Stops a raffle and refunds florins.')
     })
 
-    bot.command('!raffle open', { rank: 'mod' }, (message, price, maxTickets, winners = 1) => {
+    bot.command('!raffle open', { rank: 'mod' }, async (message, price, maxTickets, winners = 1) => {
       const mname = message.user
       if (!bot.florinsOf) {
-        return bot.send(
-          `@${mname} The raffle depends on the florins module, ` +
-          `but it doesn't appear to be available.`
-        )
+        throw new Error(
+          'The raffle depends on the florins module, but it doesn\'t appear to be available.')
       }
       if (bot.raffle) {
-        return bot.send(`@${mname} Another raffle is already open.`)
+        throw new Error('Another raffle is already open.')
       }
       if (!check(price) || price < 0) {
-        return bot.send(`@${mname} Given ticket price is not valid. (${openUsage})`)
+        throw new Error(`Given ticket price is not valid. (${openUsage})`)
       }
       if (!check(maxTickets) || maxTickets < 0) {
-        return bot.send(`@${mname} Given maximum number of tickets is not valid. (${openUsage})`)
+        throw new Error(`Given maximum number of tickets is not valid. (${openUsage})`)
       }
       if (!check(winners) || winners < 0) {
-        return bot.send(`@${mname} Given number of winners is not valid. (${openUsage})`)
+        throw new Error(`Given number of winners is not valid. (${openUsage})`)
       }
 
       bot.raffle = raffle(bot, price, maxTickets, winners)
@@ -121,34 +135,31 @@ module.exports = function (opts) {
         `and you can buy a maximum of ${maxTickets} tickets.`
       )
       const example = `!ticket ${Math.floor((Math.random() * maxTickets) + 1)}`
-      setTimeout(() => {
-        bot.send(`Use "!ticket [number of tickets]" ` +
-                 `(e.g. "${example}") to participate!`)
-      }, 100)
-      setTimeout(() => {
-        bot.send(`Use "!ticket clear" to cancel your participation.`)
-      }, 200)
+      await delay(100)
+      bot.send(`Use "!ticket [number of tickets]" (e.g. "${example}") to participate!`)
+      await delay(100)
+      bot.send('Use "!ticket clear" to cancel your participation.')
     })
 
-    bot.command('!raffle close', { rank: 'mod' }, (message) => {
+    bot.command('!raffle close', { rank: 'mod' }, async (message) => {
       const mname = message.user
       if (!bot.raffle) {
-        return bot.send(`@${mname} No raffle is currently open.`)
+        throw new Error('No raffle is currently open.')
       }
-      bot.send(`Raffle closed! A total of ${bot.raffle.totalTickets()} tickets were purchased.`)
-      bot.raffle.end()
-        .then((winners) => {
-          bot.send(winners.length === 1
-            ? 'And the winner is…'
-            : 'And the winners are…'
-          )
 
-          setTimeout(() => {
-            winners.forEach((entry) => {
-              bot.send(`@${entry.user}! (Bought ${entry.tickets} tickets)`)
-            })
-          }, 4000)
-        })
+      bot.send(`Raffle closed! A total of ${bot.raffle.totalTickets()} tickets were purchased.`)
+
+      const winners = await bot.raffle.end()
+      bot.send(winners.length === 1
+        ? 'And the winner is…'
+        : 'And the winners are…'
+      )
+
+      await delay(4000)
+      winners.forEach((entry) => {
+        bot.send(`@${entry.user}! (Bought ${entry.tickets} tickets)`)
+      })
+
       bot.raffle = null
     })
 
@@ -158,15 +169,14 @@ module.exports = function (opts) {
       bot.raffle = null
     })
 
-    const ticket = (message, tickets) => {
+    const ticket = async (message, tickets) => {
       const uname = message.user
       tickets = tickets === 'clear' ? 0 : parseInt(tickets, 10)
       if (!bot.raffle) {
-        return bot.send(`@${uname} No raffle is open right now.`)
+        throw new Error('No raffle is open right now.')
       }
 
-      bot.raffle.enter(uname, tickets)
-        .catch((e) => bot.send(`@${uname} ${e.message}`))
+      await bot.raffle.enter(uname, tickets)
     }
 
     bot.command('!ticket', ticket)
