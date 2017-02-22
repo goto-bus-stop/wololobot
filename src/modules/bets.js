@@ -1,3 +1,4 @@
+const delay = require('delay')
 const debug = require('debug')('wololobot:bets')
 
 const sum = (a, b) => a + b
@@ -17,126 +18,177 @@ const parse = (str) => {
 module.exports = function bets (opts) {
   const { db } = opts
 
-  function bet (bot, options, status = 'open', _entries = {}) {
-    db.schema.createTableIfNotExists('bet_options', (table) => {
+  async function createBetOptionsTable (options) {
+    await db.schema.createTableIfNotExists('bet_options', (table) => {
       table.string('name').primary()
       table.string('represents')
     })
-      .tap(() => debug('created table bet_options'))
-      .then(() => db('bet_options').del())
-      .then(() =>
-        db('bet_options').insert(Object.keys(options).map(name => {
-          return { name: name, represents: options[name] }
-        }))
-      )
-      .catch(e => { throw e })
-    let __entries
-    db.schema.createTableIfNotExists('bet_entries', (table) => {
+
+    debug('created table bet_options')
+    // Clear table from previous bets if it already existed.
+    await db('bet_options').del()
+
+    const optionRows = Object.keys(options).map((name) => ({
+      name: name,
+      represents: options[name]
+    }))
+    await db('bet_options').insert(optionRows)
+  }
+
+  async function createBetEntriesTable (entries) {
+    await db.schema.createTableIfNotExists('bet_entries', (table) => {
       table.string('user').primary()
       table.string('option')
       table.integer('florins')
     })
-      .tap(() => debug('created table bet_entries'))
-      .then(() => {
-        __entries = Object.keys(_entries).map(lname => _entries[lname])
-        return db('bet_entries').del()
-      })
-      .then(() => {
-        if (__entries.length === 0) return
-        return db('bet_entries').insert(__entries)
-      })
-      .catch(e => { throw e })
-    db.schema.createTableIfNotExists('bet_status', (table) => {
+
+    debug('created table bet_entries')
+    await db('bet_entries').del()
+
+    const entryRows = Object.keys(entries).map((name) => entries[name])
+    await db('bet_entries').insert(entryRows)
+  }
+
+  async function createBetStatusTable (status) {
+    await db.schema.createTableIfNotExists('bet_status', (table) => {
       table.string('status').primary()
     })
-      .tap(() => debug('created table bet_status'))
-      .then(() => db('bet_status').del())
-      .then(() => db('bet_status').insert({ status: status }))
-      .catch(e => { throw e })
 
-    const optionNames = Object.keys(options).map(n => n.toLowerCase())
+    debug('created table bet_status')
+    await db('bet_status').del()
+    await db('bet_status').insert({ status: status })
+  }
+
+  function bet (bot, options, status = 'open', _entries = {}) {
+    Promise.all([
+      createBetOptionsTable(options),
+      createBetEntriesTable(entries),
+      createBetStatusTable(status)
+    ]).catch((err) => {
+      console.error(err.stack || err.message)
+      bot.send(
+        '⚠ Failed to store bet data. ' +
+        'Bets will still work, but will be lost if wololobot crashes.'
+      )
+    })
+
+    const optionNames = Object.keys(options).map((name) => name.toLowerCase())
 
     function entries () {
-      return Object.keys(_entries).map(u => _entries[u])
+      return Object.keys(_entries).map((user) => _entries[user])
     }
+
     function valid (option) {
-      return optionNames.indexOf(String(option).toLowerCase()) !== -1
+      return optionNames.includes(String(option).toLowerCase())
     }
+
     function close () {
       debug('close', pool())
       status = 'closed'
-      db('bet_status').update({ status: status }).catch(e => { throw e })
+      return db('bet_status').update({ status: status })
     }
+
     function closed () {
       return status === 'closed'
     }
-    function enter (user, option, florins) {
-      let luser = user.toLowerCase()
-      option = String(option).toLowerCase()
-      if (status !== 'open') { return Promise.reject(new Error(`No bets are open right now.`)) }
-      if (optionNames.indexOf(option) === -1) { return Promise.reject(new Error(`Betting option "${option}" does not exist.`)) }
-      if (florins < 0) { return Promise.reject(new Error('You can\'t place a negative bet.')) }
-      return bot.florinsOf(user).then(wallet => {
-        debug('enter', florins, wallet)
-        if (wallet.florins < florins) { return Promise.reject(new Error('You don\'t have that many florins.')) }
-        db('bet_entries').where({ user }).del().catch(e => { throw e })
-          .then(() => db('bet_entries').insert({ user, option, florins }))
-          .catch(e => { throw e })
-        return (_entries[luser] = { user, option, florins })
-      })
-    }
-    function pool () {
-      return entries().map(e => e.florins).reduce(sum, 0)
-    }
-    function end (option) {
-      option = String(option).toLowerCase()
-      if (optionNames.indexOf(option) === -1) { return Promise.reject(new Error(`Betting option "${option} does not exist."`)) }
-      let winners = entries().filter(e => e.option === option)
-      let winningBets = winners.map(e => e.florins).reduce(sum, 0)
-      let total = pool()
 
-      let payouts = winners.map(e => ({
-        user: e.user,
+    async function enter (user, option, florins) {
+      const luser = user.toLowerCase()
+      option = String(option).toLowerCase()
+      if (status !== 'open') {
+        throw new Error(`No bets are open right now.`)
+      }
+      if (optionNames.indexOf(option) === -1) {
+        throw new Error(`Betting option "${option}" does not exist.`)
+      }
+      if (florins < 0) {
+        throw new Error('You can\'t place a negative bet.')
+      }
+
+      const wallet = await bot.florinsOf(user)
+      debug('enter', florins, wallet)
+      if (wallet.florins < florins) {
+        throw new Error('You don\'t have that many florins.')
+      }
+
+      try {
+        await db('bet_entries').where({ user }).del()
+        await db('bet_entries').insert({ user, option, florins })
+      } catch (err) { /* Ignore */ }
+
+      _entries[luser] = { user, option, florins }
+      return _entries[luser]
+    }
+
+    function pool () {
+      return entries().map((e) => e.florins).reduce(sum, 0)
+    }
+
+    async function end (option) {
+      option = String(option).toLowerCase()
+      if (optionNames.indexOf(option) === -1) {
+        throw new Error(`Betting option "${option} does not exist."`)
+      }
+      const winners = entries().filter((entry) => entry.option === option)
+      const winningBets = winners.map((entry) => entry.florins).reduce(sum, 0)
+      const total = pool()
+
+      const payouts = winners.map((entry) => ({
+        user: entry.user,
         // ceil()ing sometimes creates florins out of thin air,
         // but that seems fairer than sometimes losing them randomly
-        payout: Math.ceil(e.florins / winningBets * total)
+        payout: Math.ceil(entry.florins / winningBets * total)
       }))
 
-      db.schema.dropTable('bet_options')
+      await db.schema
+        .dropTable('bet_options')
         .dropTable('bet_entries')
         .dropTable('bet_status')
-        .then(() => debug('dropped betting tables'))
-        .catch(e => { throw e })
-      return bot.transactions(
-        entries().map(e => ({ username: e.user,
-          amount: -e.florins,
-          description: `bet on option ${e.option}` }))
-      ).then(() => bot.transactions(
-        payouts.map(e => ({ username: e.user,
-          amount: e.payout,
-          description: `bet payout from option ${option}` }))
-      )).return(winners)
+      debug('dropped betting tables')
+
+      await bot.transactions(
+        entries().map((entry) => ({
+          username: entry.user,
+          amount: -entry.florins,
+          description: `bet on option ${entry.option}`
+        }))
+      )
+      await bot.transactions(
+        payouts.map((entry) => ({
+          username: entry.user,
+          amount: entry.payout,
+          description: `bet payout from option ${option}`
+        }))
+      )
+
+      return winners
     }
-    function clear (user) {
+
+    async function clear (user) {
       user = user.toLowerCase()
-      if (status !== 'open') { return Promise.reject(new Error(`No bets are open right now.`)) }
-      if (user in _entries) {
-        db('bet_entries').where({ user: _entries[user].user }).del()
-          .then(() => delete _entries[user])
+      if (status !== 'open') {
+        throw new Error(`No bets are open right now.`)
       }
-      return Promise.resolve()
+
+      if (user in _entries) {
+        await db('bet_entries').where({ user: _entries[user].user }).del()
+        delete _entries[user]
+      }
     }
+
     function _options () {
       return Object.keys(options).reduce((arr, o) => {
         return arr.concat([ { option: o, label: options[o] } ])
       }, [])
     }
+
     function optionValue (option) {
       option = String(option).toLowerCase()
       return entries().filter((entry) => entry.option === option)
                       .map((entry) => entry.florins)
                       .reduce(sum, 0)
     }
+
     function entryValue (user) {
       const entry = _entries[user.toLowerCase()]
       return (entry && entry.florins) || 0
@@ -158,82 +210,95 @@ module.exports = function bets (opts) {
     }
   }
 
-  return function (bot) {
-    const lastOptions = {}
-    const lastEntries = {}
-    let lastStatus
+  async function restoreBet (bot) {
+    const exists = await db.schema.hasTable('bet_options')
+    if (!exists) {
+      return
+    }
 
-    db.schema.hasTable('bet_options').then((exists) => {
-      if (!exists) return
-      db('bet_options').select('name', 'represents').then((options) => {
-        options.forEach((option) => {
-          lastOptions[option.name] = option.represents
-        })
-        db('bet_entries').select('user', 'option', 'florins').then((bets) => {
-          bets.forEach((bet) => {
-            lastEntries[bet.user.toLowerCase()] = {
-              user: bet.user,
-              option: bet.option,
-              florins: bet.florins
-            }
-          })
-          db('bet_status').select('status').then((status) => {
-            lastStatus = status[0].status
-            bot.bet = bet(bot, lastOptions, lastStatus, lastEntries)
-          })
-        })
-      })
+    const options = await db('bet_options').select('name', 'represents')
+    const lastOptions = {}
+    options.forEach((option) => {
+      lastOptions[option.name] = option.represents
     })
 
-    bot.command('!bet open', { rank: 'mod' }, (message) => {
-      const mname = message.user
+    const bets = await db('bet_entries').select('user', 'option', 'florins')
+    const lastEntries = {}
+    bets.forEach((bet) => {
+      lastEntries[bet.user.toLowerCase()] = {
+        user: bet.user,
+        option: bet.option,
+        florins: bet.florins
+      }
+    })
+
+    const status = await db('bet_status').select('status')
+
+    const lastStatus = status[0].status
+    bot.bet = bet(bot, lastOptions, lastStatus, lastEntries)
+  }
+
+  return function (bot) {
+    restoreBet(bot).catch(
+      (err) => debug('Failed to restore bets', err.message))
+
+    bot.command('!bet open', { rank: 'mod' }, async (message) => {
       if (!bot.florinsOf) {
-        return bot.send(`@${mname} Bets require the florins module, ` +
-            `but it doesn't appear to be available.`)
+        throw new Error('Bets require the florins module, but it doesn\'t appear to be available.')
       }
       if (bot.bet) {
-        return bot.send(`@${mname} Another bet is already open.`)
+        throw new Error('Another bet is already open.')
       }
 
       const options = parse(message.trailing)
-      let keys = Object.keys(options)
+      const keys = Object.keys(options)
 
       bot.bet = bet(bot, options)
       bot.send('Bet opened! Betting options:')
-      bot.send(keys.reduce((arr, opt) => arr.concat([ `${opt}) ${options[opt]}` ]), [])
-        .join(',  '))
+      bot.send(keys.reduce((arr, opt) => arr.concat([`${opt}) ${options[opt]}`]), []).join(',  '))
 
-      const example = `!bet ${keys[Math.floor(keys.length * Math.random())]} ` +
-        Math.floor((Math.random() * 1000) + 1)
-      setTimeout(() => bot.send(`Use !bet [option] [number of florins] (e.g. ${example}) to participate!`), 100)
-      setTimeout(() => bot.send('Use !bet clear to cancel your participation.'), 200)
+      const exampleKey = keys[Math.floor(keys.length * Math.random())]
+      const exampleBet = Math.floor((Math.random() * 1000) + 1)
+      const example = `!bet ${exampleKey} ${exampleBet}`
+      await delay(100)
+      bot.send(`Use !bet [option] [number of florins] (e.g. ${example}) to participate!`)
+      await delay(100)
+      bot.send('Use !bet clear to cancel your participation.')
     })
 
-    bot.command('!bet close', { rank: 'mod' }, (message) => {
-      const mname = message.user
-      if (!bot.bet || bot.bet.closed()) { return bot.send(`@${mname} No bets are currently open.`) }
+    bot.command('!bet close', { rank: 'mod' }, async (message) => {
+      if (!bot.bet || bot.bet.closed()) {
+        throw new Error('No bets are currently open.')
+      }
+
       bot.bet.close()
-      bot.send(`Bets closed. A total of ${bot.bet.pool()} florins were entered. ` +
-    `You can no longer change your bets!`)
+      bot.send(
+        `Bets closed. A total of ${bot.bet.pool()} florins were entered. ` +
+        'You can no longer change your bets!'
+      )
     })
 
-    bot.command('!bet end', { rank: 'mod' }, (message, option) => {
-      const mname = message.user
-      if (!bot.bet) { return bot.send(`@${mname} No bets are currently running.`) }
+    bot.command('!bet end', { rank: 'mod' }, async (message, option) => {
+      if (!bot.bet) {
+        throw new Error('No bets are currently running.')
+      }
 
-      let pool = bot.bet.pool()
-      bot.bet.end(option)
-        .then((winners) => {
-          if (winners.length === 0) {
-            bot.send(`Bets ended! Nobody bet on the winning option. The pool will ` +
-                     `be donated to villager orphans instead.`)
-          } else {
-            bot.send(`Bets ended! Congratulations to the ${winners.length} people ` +
-                     `who bet on option "${option}": ${pool} florins were awarded.`)
-          }
-        })
-        .catch((e) => bot.send(`@${mname} ${e.message}`))
+      const bet = bot.bet
       bot.bet = null
+
+      const pool = bet.pool()
+      const winners = await bet.end(option)
+      if (winners.length === 0) {
+        bot.send(
+          'Bets ended! Nobody bet on the winning option. The pool will ' +
+          'be donated to villager orphans instead.'
+        )
+      } else {
+        bot.send(
+          `Bets ended! Congratulations to the ${winners.length} people ` +
+          `who bet on option "${option}": ${pool} florins were awarded.`
+        )
+      }
     })
 
     bot.command('!bet stop', { rank: 'mod' }, (message) => {
@@ -241,38 +306,51 @@ module.exports = function bets (opts) {
       bot.send('Bets closed and florins refunded.')
     })
 
-    bot.command('!bet clear', (message) => {
-      if (!bot.bet) { return }
-      bot.bet.clear(message.user)
-        .catch((e) => bot.send(`@${message.user} ${e.message}`))
+    bot.command('!bet clear', async (message) => {
+      if (!bot.bet) {
+        return
+      }
+
+      await bot.bet.clear(message.user)
     })
 
     bot.command('!bet options', { throttle: 10000 }, () => {
-      if (!bot.bet) { return }
-      let closed = bot.bet.closed()
+      if (!bot.bet) {
+        return
+      }
+
+      const closed = bot.bet.closed()
+
       bot.send(
-        'Betting options: ' +
-        bot.bet.options()
-               .map((opt) => `${opt.option}) ${opt.label}` +
-                           (closed ? ` - ${bot.bet.optionValue(opt.option)} florins` : ''))
-               .join(',  ')
+        'Betting options: ' + bot.bet.options().map(showOption).join(',  ')
       )
+
+      function showOption (opt) {
+        return `${opt.option}) ${opt.label}` +
+          (closed ? ` - ${bot.bet.optionValue(opt.option)} florins` : '')
+      }
     })
 
-    bot.command('!bet', (message, option, florins) => {
-      const uname = message.user
-      florins = parseInt(florins, 10)
-      if ([ 'open', 'close', 'clear', 'end', 'stop', 'show', 'options' ]
-          .indexOf(option) !== -1) { return }
-      if (!bot.bet) { return bot.send(`@${uname} No bets are open right now.`) }
-      if (!option) {
-        return bot.send(`@${uname} You must provide an option to bet on. ` +
-                        `(!bet [option] [florins])`)
+    bot.command('!bet', async (message, option, florins) => {
+      if (['open', 'close', 'clear', 'end', 'stop', 'show', 'options'].includes(option)) {
+        return
       }
-      if (!bot.bet.valid(option)) { return bot.send(`@${uname} Betting option "${option}" does not exist.`) }
-      if (isNaN(florins) || florins < 0) { return bot.send(`@${uname} You specified an invalid number of florins.`) }
-      bot.bet.enter(uname, option, florins)
-        .catch((e) => bot.send(`@${uname} ${e.message}`))
+
+      if (!bot.bet) {
+        throw new Error('No bets are open right now.')
+      }
+      if (!option) {
+        throw new Error('You must provide an option to bet on. (!bet [option] [florins])')
+      }
+      if (!bot.bet.valid(option)) {
+        throw new Error(`Betting option "${option}" does not exist.`)
+      }
+      florins = parseInt(florins, 10)
+      if (!isFinite(florins) || florins < 0) {
+        throw new Error('You specified an invalid number of florins.')
+      }
+
+      await bot.bet.enter(message.user, option, florins)
     })
   }
 }
