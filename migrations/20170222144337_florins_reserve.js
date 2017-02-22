@@ -7,5 +7,5 @@ exports.up = (db) =>
     table.string('purpose', 50)
   })
 
-exports.down = (knex) =>
+exports.down = (db) =>
   db.schema.dropTable('florinReservations')

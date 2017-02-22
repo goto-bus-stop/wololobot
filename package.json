@@ -29,7 +29,11 @@
     "strip": "^3.0.0",
     "timezone-abbr-offsets": "^1.0.1"
   },
+  "devDependencies": {
+    "standard": "^8.6.0"
+  },
   "scripts": {
-    "start": "DEBUG=wololobot:* ./bin/wololobot"
+    "start": "DEBUG=wololobot:* ./bin/wololobot",
+    "test": "standard src/**/*.js bin/* migrations/*.js knexfile.js"
   }
 }

@@ -7,5 +7,5 @@ exports.up = (db) =>
     table.text('description')
   })
 
-exports.down = (knex) =>
+exports.down = (db) =>
   db.schema.dropTable('transactions')
