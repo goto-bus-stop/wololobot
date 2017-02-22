@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
-require('../src/cli').apply(null, process.argv.slice(2))
+require('async-to-gen/register')
+require('../src/cli')(...process.argv.slice(2))

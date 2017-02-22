@@ -8,6 +8,7 @@
     "node": ">= 7"
   },
   "dependencies": {
+    "async-to-gen": "^1.3.2",
     "bluebird": "^3.3.5",
     "countdown": "mckamey/countdownjs#v2.5.2",
     "debounce": "^1.0.0",

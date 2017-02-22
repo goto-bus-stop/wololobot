@@ -45,12 +45,16 @@ module.exports = function () {
       if (!action) {
         [ opts, action ] = [ {}, opts ]
       }
-      let execute = (message) => {
+      let execute = async (message) => {
         const params = message.trailing.slice(command.length).trim()
         message.user = typeof message.tags['display-name'] === 'string'
           ? message.tags['display-name']
           : message.parsedPrefix.user
-        action(message, ...parse(params))
+        try {
+          await action(message, ...parse(params))
+        } catch (err) {
+          bot.send(`@${message.user} ${err.message}`)
+        }
       }
 
       if (opts.throttle) {
