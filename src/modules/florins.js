@@ -53,6 +53,10 @@ module.exports = function (opts) {
   }
 
   async function transactions (list) {
+    if (list.length === 0) {
+      return
+    }
+
     const transactionRows = list.map((transaction) => ({
       username: transaction.username.toLowerCase(),
       amount: transaction.amount,
