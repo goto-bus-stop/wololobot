@@ -201,7 +201,7 @@ module.exports = function (opts) {
       }
 
       usernames.forEach((username) => {
-        if (florinsChecks.indexOf(username) === -1) {
+        if (florinsChecks.includes(username)) {
           florinsChecks.push(username)
         }
       })

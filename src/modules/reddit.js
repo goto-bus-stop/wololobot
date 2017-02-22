@@ -2,7 +2,7 @@ const ms = require('ms')
 const got = require('got')
 
 const withFullStop = (str) =>
-  '.,…!?‽'.indexOf(str.substr(-1)) === -1 ? str + '.' : str
+  '.,…!?‽'.includes(str.substr(-1)) ? str + '.' : str
 
 const cleanTitle = (title) =>
   withFullStop(title.trim().replace(/^"|^,,|"$/g, ''))

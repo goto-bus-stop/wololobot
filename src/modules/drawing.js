@@ -41,7 +41,7 @@ module.exports = function (opts) {
         return
       }
       message.user = message.user.toLowerCase()
-      if (entrants.indexOf(message.user) !== -1) {
+      if (entrants.includes(message.user)) {
         return
       }
       nEntrants++
