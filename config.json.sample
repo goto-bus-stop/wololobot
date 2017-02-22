@@ -2,6 +2,8 @@
 , "password": "oauth key from twitchapps.com/tmi"
 , "host": "irc.twitch.tv"
 , "port": 6667
+, "groupChannelHost": "192.16.64.180"
+, "groupChannelPort": 443
 , "channel": "#my_channel"
 , "database":
   { "dialect": "sqlite3"
