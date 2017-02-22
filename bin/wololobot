@@ -1,4 +1,9 @@
 #!/usr/bin/env node
 
+// Use Bluebird promises everywhere
+global.Promise = require('bluebird')
+
+// Enable async functions
 require('async-to-gen/register')
+
 require('../src/cli')(...process.argv.slice(2))
