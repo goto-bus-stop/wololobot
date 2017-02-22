@@ -1,3 +1,4 @@
+const ms = require('ms')
 const delay = require('delay')
 const debug = require('debug')('wololobot:raffle')
 
@@ -152,7 +153,7 @@ module.exports = function (opts) {
         : 'And the winners are…'
       )
 
-      await delay(4000)
+      await delay(ms('4 seconds'))
       winners.forEach((entry) => {
         bot.send(`@${entry.user}! (Bought ${entry.tickets} tickets)`)
       })

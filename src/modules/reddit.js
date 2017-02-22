@@ -1,3 +1,4 @@
+const ms = require('ms')
 const got = require('got')
 
 const withFullStop = (str) =>
@@ -27,7 +28,7 @@ module.exports = function (opts) {
   let quote = getNextQuote(opts.sub, opts.min_karma)
 
   return function reddit (bot) {
-    bot.command('!quote', { throttle: 2000 }, async (message) => {
+    bot.command('!quote', { throttle: ms('2 seconds') }, async (message) => {
       bot.action(enquote(await quote))
       quote = getNextQuote(opts.sub, opts.min_karma)
     })

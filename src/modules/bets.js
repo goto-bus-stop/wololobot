@@ -1,3 +1,4 @@
+const ms = require('ms')
 const delay = require('delay')
 const debug = require('debug')('wololobot:bets')
 
@@ -314,7 +315,7 @@ module.exports = function bets (opts) {
       await bot.bet.clear(message.user)
     })
 
-    bot.command('!bet options', { throttle: 10000 }, () => {
+    bot.command('!bet options', { throttle: ms('10 seconds') }, () => {
       if (!bot.bet) {
         return
       }

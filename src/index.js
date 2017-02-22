@@ -1,3 +1,4 @@
+const ms = require('ms')
 const irc = require('slate-irc')
 const { createStream: ircparser } = require('irc-message')
 const { connect } = require('net')
@@ -25,8 +26,7 @@ module.exports = function wololobot (opts) {
     })
   })
 
-  const channel = opts.channel.startsWith('#') ? opts.channel
-              : `#${opts.channel}`
+  const channel = opts.channel.startsWith('#') ? opts.channel : `#${opts.channel}`
 
   const bot = irc(stream, parser)
   bot.use(command())
@@ -37,10 +37,12 @@ module.exports = function wololobot (opts) {
 
   bot.channel = channel
 
-  bot.use(defaultChannel(channel, [ 'action', 'send', 'names', 'users',
+  bot.use(defaultChannel(channel, [
+    'action', 'send', 'names', 'users',
     'ban', 'unban', 'clear', 'color', 'commercial', 'host',
     'unhost', 'mod', 'unmod', 'mods', 'r9kbeta', 'r9kbetaoff',
-    'slow', 'slowoff', 'subscribers', 'subscribersoff', 'timeout' ]))
+    'slow', 'slowoff', 'subscribers', 'subscribersoff', 'timeout'
+  ]))
   bot.pass(opts.password)
   bot.nick(opts.username)
   bot.user(opts.username, opts.username)
@@ -51,7 +53,7 @@ module.exports = function wololobot (opts) {
   })
   bot.on('mode', debounce(() => {
     bot.mods(channel)
-  }, 1000))
+  }, ms('1 second')))
 
   return bot
 }

@@ -1,7 +1,10 @@
 const got = require('got')
+const ms = require('ms')
 
 module.exports = function users (opts) {
-  opts = Object.assign({ interval: 1 * 60 * 1000 }, opts)
+  opts = Object.assign({
+    interval: ms('1 minute')
+  }, opts)
 
   const updateUsers = async (channel, client) => {
     const ircChannel = `#${channel}`

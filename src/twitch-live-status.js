@@ -1,3 +1,4 @@
+const ms = require('ms')
 const got = require('got')
 
 async function getStream (channel) {
@@ -8,7 +9,7 @@ async function getStream (channel) {
 }
 
 module.exports = function twitchLiveStatus (opts = {}) {
-  const interval = opts.interval || 5 * 60 * 1000
+  const interval = opts.interval || ms('5 minutes')
 
   return (client) => {
     client.isLive = false

@@ -17,6 +17,7 @@
     "got": "^6.7.1",
     "irc-message": "^3.0.2",
     "knex": "^0.12.6",
+    "ms": "^0.7.2",
     "slate-irc": "^0.9.0",
     "slate-irc-twitch": "^2.0.1",
     "sqlite3": "^3.0.5",

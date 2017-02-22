@@ -1,11 +1,12 @@
+const ms = require('ms')
 const debug = require('debug')('wololobot:florins')
 
 module.exports = function (opts) {
   opts = Object.assign({
-    delay: 4000,
+    delay: ms('4 seconds'),
     gain: 5, // 5 florins per 10 minutes
     subGain: 10, // 10 florins per 10 minutes
-    gainInterval: 10 * 60 * 1000, // 10 minutes
+    gainInterval: ms('10 minutes'),
     excludeMods: false
   }, opts)
 

@@ -32,11 +32,7 @@ module.exports = function (opts) {
     } else if (winners.length === 1) {
       return `The winner is ${winners[0]}`
     }
-    let out = 'The winners are: '
-    winners.forEach((winner) => {
-      out += `${winner}, `
-    })
-    return out.slice(0, -2)
+    return `The winners are: ${winners.join(', ')}`
   }
 
   return function drawing (bot) {
@@ -49,14 +45,11 @@ module.exports = function (opts) {
         return
       }
       nEntrants++
-      if (message.tags.subscriber === '1') {
-        for (let i = 0; i < opts.subChances; i++) {
-          entrants.push(message.user)
-        }
-      } else {
-        for (let i = 0; i < opts.normalChances; i++) {
-          entrants.push(message.user)
-        }
+      const weight = message.tags.subscriber === '1'
+        ? opts.subChances
+        : opts.normalChances
+      for (let i = 0; i < weight; i++) {
+        entrants.push(message.user)
       }
     })
 
