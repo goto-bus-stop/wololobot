@@ -3,7 +3,7 @@ exports.up = (db) =>
     table.increments('id').primary()
     table.string('username', 50).index()
     table.integer('amount').index()
-    table.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
+    table.timestamp('time').defaultTo(db.fn.now())
     table.text('description')
   })
 
