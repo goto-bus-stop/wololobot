@@ -1,5 +1,3 @@
-const assign = require('object-assign')
-
 const debug = require('debug')('wololobot:bets')
 
 const sum = (a, b) => a + b

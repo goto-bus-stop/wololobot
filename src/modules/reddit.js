@@ -1,4 +1,3 @@
-const assign = require('object-assign')
 const Promise = require('bluebird')
 const request = require('request')
 
@@ -25,7 +24,7 @@ const getNextQuote = (sub, minKarma, attempts = 0) =>
     )
 
 module.exports = function (opts) {
-  opts = assign({
+  opts = Object.assign({
     sub: 'random'
   , min_karma: 1
   }, opts)

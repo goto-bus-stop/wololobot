@@ -1,11 +1,9 @@
-const findIndex = require('array-findindex')
 const request = require('request')
-const assign = require('object-assign')
 const debug = require('debug')('wololobot:users')
 
 module.exports = function users(opts) {
 
-  opts = assign({ interval: 1 * 60 * 1000 }, opts)
+  opts = Object.assign({ interval: 1 * 60 * 1000 }, opts)
 
   const updateUsers = (channel, client) => {
     let ircChannel = `#${channel}`

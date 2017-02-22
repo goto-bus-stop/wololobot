@@ -1,10 +1,9 @@
-const assign = require('object-assign')
 const Promise = require('bluebird')
 
 const debug = require('debug')('wololobot:florins')
 
 module.exports = function (opts) {
-  opts = assign({
+  opts = Object.assign({
     delay: 4000
   , gain: 5 // 5 florins per 10 minutes
   , subGain: 10 // 10 florins per 10 minutes
@@ -39,12 +38,12 @@ module.exports = function (opts) {
   function florinsOfMany(users) {
     let lusers = users.map(u => u.toLowerCase())
     // maps lower case names to the original capitalised names
-    let nameMap = users.reduce((map, user, i) => assign(map, { [lusers[i]]: user }), {})
+    let nameMap = users.reduce((map, user, i) => Object.assign(map, { [lusers[i]]: user }), {})
     return db('transactions')
       .select(db.raw('lower(username) as lname')).sum('amount as wallet')
       .whereIn('lname', lusers)
       .groupBy('lname')
-      .reduce((o, t) => assign(o, { [nameMap[t.lname] || t.lname]: t.wallet }), {})
+      .reduce((o, t) => Object.assign(o, { [nameMap[t.lname] || t.lname]: t.wallet }), {})
       // add default 0 florins for unrecorded users
       .then(o => {
         users.forEach(u => o[u] || (o[u] = 0))
@@ -103,7 +102,7 @@ module.exports = function (opts) {
       if (bot.isLive) gain()
     }, opts.gainInterval)
 
-    assign(bot, { florinsOf, florinsOfMany, transaction, transactions })
+    Object.assign(bot, { florinsOf, florinsOfMany, transaction, transactions })
 
     bot.command('!forcegain', { rank: 'mod' }, message => {
       gain()

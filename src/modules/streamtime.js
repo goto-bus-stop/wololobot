@@ -1,7 +1,6 @@
 const request = require('request')
 const tzCodes = require('timezone-abbr-offsets')
 const strip = require('strip')
-const assign = require('object-assign')
 const countdown = require('countdown')
 
 let debug = require('debug')('wololobot:streamtime')
@@ -119,7 +118,7 @@ const parseSchedule = str => {
 
 module.exports = function(opts) {
 
-  opts = assign({
+  opts = Object.assign({
     schedImage: 'http://static-cdn.jtvnw.net/jtv_user_pictures/panel-23728458-image-15fb69742e4863a7-320.jpeg' // Use ZeroEmpires' schedule image by default
   , lateBy: 5 // Minutes for which the 'Should have started' message is shown
   , updateInterval: 5 * 60 * 1000 // Interval (in ms) in which the streamtimes are updated

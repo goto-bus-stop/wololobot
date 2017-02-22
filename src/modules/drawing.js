@@ -1,5 +1,3 @@
-const assign = require('object-assign')
-
 const debug = require('debug')('wololobot:drawing')
 
 const removeFromArr = (arr, el) => {
@@ -12,7 +10,7 @@ const removeFromArr = (arr, el) => {
 
 module.exports = function(opts) {
 
-  opts = assign({
+  opts = Object.assign({
     subChances: 2     // Number of tickets for subs
   , normalChances: 1  // Number of tickets for non-subs
   }, opts)
