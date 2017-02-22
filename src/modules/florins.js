@@ -1,3 +1,5 @@
+const indexBy = require('index-by')
+const groupBy = require('group-by')
 const ms = require('ms')
 const debug = require('debug')('wololobot:florins')
 
@@ -19,28 +21,28 @@ module.exports = function (opts) {
     function florinsOf (user) {
       debug('florinsOf', user)
       return db('transactions')
-        .select(db.raw('lower(username) as lname'))
         .sum('amount as florins')
-        .where('lname', '=', user.toLowerCase())
+        .where('username', '=', user.toLowerCase())
         .get(0)
     }
 
     /**
      * Find the current florins balance of multiple users.
-     * 
+     *
      * Returns a Promise for an object:
      *   `{ [user]: florins }`
      */
     async function florinsOfMany (users) {
       const lusers = users.map((name) => name.toLowerCase())
       // maps lower case names to the original capitalised names
-      const nameMap = users.reduce((map, user, i) => Object.assign(map, { [lusers[i]]: user }), {})
+      const nameMap = indexBy(users, (user) => user.toLowerCase())
       const florinsMap = await db('transactions')
-        .select(db.raw('lower(username) as lname')).sum('amount as wallet')
-        .whereIn('lname', lusers)
-        .groupBy('lname')
+        .select('username')
+        .sum('amount as wallet')
+        .whereIn('username', lusers)
+        .groupBy('username')
         .reduce((o, t) => Object.assign(o, {
-          [nameMap[t.lname] || t.lname]: t.wallet
+          [nameMap[t.username] || t.username]: t.wallet
         }), {})
 
       // add default 0 florins for unrecorded users
@@ -83,11 +85,67 @@ module.exports = function (opts) {
       debug(`Added florins to ${transactionRows.length} users.`)
     }
 
+    /**
+     *
+     */
+    async function reserve (user, purpose, amount) {
+      const wallet = await florinsOf(user)
+      if (wallet.florins < amount) {
+        throw new Error('You don\'t have that many florins.')
+      }
+
+      await db('florinReservations').insert({
+        username: user.toLowerCase(),
+        amount,
+        purpose
+      })
+    }
+
+    async function unreserve (user, purpose) {
+      await db('florinReservations')
+        .where('username', '=', user.toLowerCase())
+        .where('purpose', '=', purpose)
+        .delete()
+    }
+
+    async function clearReservations (purpose) {
+      await db('florinReservations')
+        .where('purpose', '=', purpose)
+        .delete()
+    }
+
+    function getReservations (user) {
+      return db('florinReservations')
+        .where('username', '=', user.toLowerCase())
+    }
+
+    async function getReservationsMany (users) {
+      const lusers = users.map((user) => user.toLowerCase())
+      const userNameMap = indexBy(users, (user) => user.toLowerCase())
+      const name = (lname) => userNameMap[lname] || lname
+
+      const reservations = await db('florinReservations')
+        .select('username', 'purpose', 'amount')
+        .whereIn('username', lusers)
+
+      const reservationsMap = groupBy(reservations, (res) => name(res.username))
+      // Add empty lists for users without reservations.
+      users.forEach((name) => {
+        reservationsMap[name] = reservationsMap[name] || []
+      })
+      return reservationsMap
+    }
+
     return {
       of: florinsOf,
       ofMany: florinsOfMany,
       transaction,
-      transactions
+      transactions,
+      reserve,
+      unreserve,
+      clearReservations,
+      getReservations,
+      getReservationsMany
     }
   }
 
@@ -98,18 +156,18 @@ module.exports = function (opts) {
     let florinsChecks = []
 
     async function respondFlorins () {
-      const o = await bot.florins.ofMany(florinsChecks)
+      const wallets = await bot.florins.ofMany(florinsChecks)
+      const reservations = await bot.florins.getReservationsMany(florinsChecks)
 
-      const responses = Object.keys(o).map((name) => {
-        const extra = []
-        const bet = bot.bet ? bot.bet.entryValue(name) : 0
-        const raffle = bot.raffle ? bot.raffle.entryValue(name) : 0
-        if (bet) extra.push(`bet:${bet}`)
-        if (raffle) extra.push(`raffle:${raffle}`)
+      const responses = Object.keys(wallets).map((name) => {
+        const extra = reservations[name]
+          .map((res) => `${res.purpose}:${res.amount}`)
+        const reserved = reservations[name]
+          .reduce((total, res) => total + res.amount, 0)
 
         // user - 352[bet:20,raffle:70]
-        return `${name} - ${o[name] - bet - raffle}` +
-                (extra.length ? `[${extra.join(' / ')}]` : '')
+        return `${name} - ${wallets[name] - reserved}` +
+          (extra.length ? `[${extra.join(' / ')}]` : '')
       })
 
       bot.send(responses.join(', '))
@@ -171,17 +229,17 @@ module.exports = function (opts) {
     const topCommand = (opts) => async (message, n = 3) => {
       if (n > 15) n = 15
       let query = db('transactions')
-        .select('username', db.raw('lower(username) as lname'))
+        .select('username')
         .sum('amount as wallet')
 
       if (opts.excludeMods && bot.moderators) {
-        query = query.whereNotIn('lname',
+        query = query.whereNotIn('username',
           [bot.channel.slice(1), ...bot.moderators].map((name) => (name).toLowerCase())
         )
       }
 
       const list = await query
-        .groupBy('lname')
+        .groupBy('username')
         .orderBy('wallet', 'desc')
         .limit(n)
         .reduce((list, user, i) => list.concat([

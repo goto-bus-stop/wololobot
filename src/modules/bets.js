@@ -78,11 +78,8 @@ module.exports = function bets (opts) {
         throw new Error('You can\'t place a negative bet.')
       }
 
-      const wallet = await bot.florins.of(user)
-      debug('enter', florins, wallet)
-      if (wallet.florins < florins) {
-        throw new Error('You don\'t have that many florins.')
-      }
+      await bot.florins.unreserve(user, 'bet')
+      await bot.florins.reserve(user, 'bet', florins)
 
       // Remove user's old bets.
       await db('betEntries').where('betId', '=', betId)
@@ -118,18 +115,15 @@ module.exports = function bets (opts) {
       await db('bets')
         .where('id', '=', betId)
         .update({ status: 'ended' })
-      debug('ended')
 
       const allEntries = await getBetEntries()
-      debug('allEntries')
 
       const winners = await db('betEntries')
         .where('betId', '=', betId)
         .where('optionId', '=', winningOption.id)
-      debug('winners', winners)
       const winningBets = winners.map((entry) => entry.amount).reduce(sum, 0)
+
       const total = await pool()
-      debug('pool', total)
 
       const payouts = winners.map((entry) => ({
         user: entry.user,
@@ -153,6 +147,8 @@ module.exports = function bets (opts) {
           description: `bet payout from option ${winningOption.name}`
         }))
       )
+
+      await bot.florins.clearReservations('bet')
 
       return winners
     }
