@@ -19,16 +19,15 @@ module.exports = function (opts) {
         throw new Error(`Cannot enter with more than ${maxTickets} tickets.`)
       }
 
+      await bot.florins.unreserve(user, 'raffle')
+
       let luser = user.toLowerCase()
       if (tickets === 0) {
         delete _entries[luser]
         return { user, tickets: 0 }
       }
 
-      const wallet = await bot.florins.of(user)
-      if (wallet.florins < tickets * price) {
-        throw new Error('You don\'t have that many florins.')
-      }
+      await bot.florins.reserve(user, 'raffle', tickets * price)
 
       _entries[luser] = { user, tickets }
       return _entries[luser]
@@ -87,11 +86,15 @@ module.exports = function (opts) {
         }))
       )
 
+      await bot.florins.clearReservations('raffle')
+
       return winners
     }
 
-    function stop () {
+    async function stop () {
       _entries = {}
+
+      await bot.florins.clearReservations('raffle')
     }
 
     return { enter, end, stop, tickets, totalTickets, entryValue }
@@ -161,9 +164,9 @@ module.exports = function (opts) {
       bot.raffle = null
     })
 
-    bot.command('!raffle stop', { rank: 'mod' }, (message) => {
+    bot.command('!raffle stop', { rank: 'mod' }, async (message) => {
+      await bot.raffle.stop()
       bot.send(`Raffle stopped and florins refunded.`)
-      bot.raffle.stop()
       bot.raffle = null
     })
 
