@@ -1,38 +1,31 @@
-const request = require('request')
+const got = require('got')
 const Promise = require('bluebird')
 
-function getStream (channel) {
-  return new Promise((resolve, reject) => {
-    request(
-      { method: 'GET',
-        uri: `https://api.twitch.tv/kraken/streams/${channel}`,
-        json: true },
-      (e, _, body) => e ? reject(e)
-                    : body.stream ? resolve(body.stream)
-                    : reject(new Error('Stream offline.'))
-    )
-  })
+async function getStream (channel) {
+  const response = await got(`https://api.twitch.tv/kraken/streams/${channel}`, { json: true })
+  if (response.body.stream) {
+    return response.body.stream
+  }
 }
 
 module.exports = function twitchLiveStatus (opts = {}) {
   const interval = opts.interval || 5 * 60 * 1000
 
-  return function (client) {
+  return (client) => {
     client.isLive = false
 
     update()
     setInterval(update, interval)
 
-    function update () {
-      getStream(opts.channel)
-        .then(stream => {
-          if (!client.isLive) { client.emit('streamstart', stream) }
-          client.isLive = stream
-        })
-        .catch(() => {
-          if (client.isLive) { client.emit('streamend') }
-          client.isLive = false
-        })
+    async function update () {
+      const stream = await getStream(opts.channel)
+      if (stream && !client.isLive) {
+        client.emit('streamstart', stream)
+        client.isLive = stream
+      } else if (!stream && client.isLive) {
+        client.emit('streamend')
+        client.isLive = false
+      }
     }
   }
 }

@@ -1,20 +1,20 @@
-const request = require('request')
+const got = require('got')
 const tzCodes = require('timezone-abbr-offsets')
 const strip = require('strip')
 const countdown = require('countdown')
 
-let debug = require('debug')('wololobot:streamtime')
+const debug = require('debug')('wololobot:streamtime')
 
 // timezones.json contains offset from UTC, this converts to offset from local
 // timezone.
 let utcOffset = new Date().getTimezoneOffset()
-for (var key in tzCodes) {
+for (const key in tzCodes) {
   tzCodes[key] = tzCodes[key] + utcOffset
 }
 
 const exAssign = (a, b) => (a !== void 0 && a !== null) ? a : b
 
-const parseTimezone = str => {
+const parseTimezone = (str) => {
   // Timezone is in UTC+|-00[[:]00] format
   let match = /UTC([+-])(\d{2})(?::?(\d{2))/.exec(str)
   let offset = 0
@@ -35,13 +35,17 @@ const parseTimezone = str => {
   return offset
 }
 
-const parseMonth = str => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-  'Sep', 'Oct', 'Nov', 'Dec'].indexOf(str.substring(0, 3))
+const parseMonth = (str) => [
+  'Jan', 'Feb', 'Mar', 'Apr',
+  'May', 'Jun', 'Jul', 'Aug',
+  'Sep', 'Oct', 'Nov', 'Dec'
+].indexOf(str.substring(0, 3))
 
-const invDate = usr => `@${usr} Couldn't parse time - Use \`!streamtime ` +
-                       `overwrite_time YYYY-MM-DD hh:mm [AM|PM] [timezone]`
+const invDate = (usr) =>
+  `@${usr} Couldn't parse time - Use \`!streamtime ` +
+  'overwrite_time YYYY-MM-DD hh:mm [AM|PM] [timezone]'
 
-const parseSchedule = str => {
+const parseSchedule = (str) => {
   let lines = str.split('\n')
   let tz
   // First line could be a timezone definition
@@ -162,88 +166,75 @@ module.exports = function (opts) {
 
   let streams = []
 
-  function setOverwriteMsg (value) {
+  async function setOverwriteMsg (value) {
     if (!tableExists) {
       return null
     }
+
     overwrite.msg = value
-    db('streamtime_overwrites')
+
+    await db('streamtime_overwrites')
       .update({ value: value })
       .where({ id: 1 })
-      .catch((e) => { throw e })
   }
 
-  function setOverwriteTime (value) {
+  async function setOverwriteTime (value) {
     if (!tableExists) {
       return null
     }
+
     overwrite.time = value
-    db('streamtime_overwrites')
+
+    await db('streamtime_overwrites')
       .update({ value: (value !== null) ? value.getTime() : value })
       .where({ id: 2 })
-      .catch((e) => { throw e })
   }
 
-  function getTimes (channel) {
-    return new Promise((resolve, reject) => {
-      request({
-        uri: `https://api.twitch.tv/api/channels/${channel.slice(1)}/panels`,
-        json: true
-      }, (err, res, panels = []) => {
-        if (err) {
-          debug(`An error occured while trying to get the panels: ${err}`)
-          reject(err)
-        } else {
-          streams = []
-          try {
-            for (const panel of panels) {
-              if ((panel.data.title !== void 0 &&
-                  panel.data.title.toLowerCase() === 'schedule') ||
-                  panel.data.image === opts.schedImage) {
-                streams = parseSchedule(strip(panel.html_description))
-                debug(strip(panel.html_description))
-                break
-              }
-            }
-            resolve()
-          } catch (e) {
-            if (!(e instanceof TypeError)) {
-              throw e
-            }
-            // Probably an Internal Server Error of sorts, just ignore that.
-            debug(`An error occured while trying to get the panels: ${e}`)
-            reject(e)
-          }
-        }
-      })
-    })
+  async function getTimes (channel) {
+    const response = await got(`https://api.twitch.tv/api/channels/${channel.slice(1)}/panels`, { json: true })
+    if (!Array.isArray(response.body)) {
+      throw new Error('Failed to retrieve stream list.')
+    }
+
+    streams = []
+
+    for (const panel of response.body) {
+      if ((panel.data.title !== void 0 &&
+          panel.data.title.toLowerCase() === 'schedule') ||
+          panel.data.image === opts.schedImage) {
+        streams = parseSchedule(strip(panel.html_description))
+        debug(strip(panel.html_description))
+        break
+      }
+    }
   }
 
   function getNext () {
     let next = [Infinity]
-    let now = new Date()
-    streams.some(stream => {
-      let start = new Date(stream[0])
+    const now = new Date()
+    for (const stream of streams) {
+      const start = new Date(stream[0])
       start.setMinutes(start.getMinutes() + opts.lateBy)
       if (start < next[0] && start > now) {
         next = stream
       }
-    })
+    }
     return isFinite(next[0]) ? next : null
   }
 
   return function (bot) {
-    bot.command('!streamtime overwrite', { rank: 'mod' }, (message, extra) => {
-      if ([ '_time', '_discard' ].indexOf(extra) !== -1) {
+    bot.command('!streamtime overwrite', { rank: 'mod' }, async (message, extra) => {
+      if (['_time', '_discard'].includes(extra)) {
         return
       }
       let msg = message.trailing.slice(21).trim()
       if (msg.length === 0) {
-        return bot.send(`@${message.user} Usage: !streamtime overwrite ` +
-                        `<message> (use $time$ to include a countdown to the ` +
-                        `next stream)`)
+        bot.send(
+          `@${message.user} Usage: !streamtime overwrite <message> ` +
+          '(use $time$ to include a countdown to the next stream)'
+        )
       }
-      setOverwriteMsg(msg)
+      await setOverwriteMsg(msg)
       debug(`Message overwritten by ${message.user} with ${msg}`)
       bot.send(`@${message.user} !streamtime has been overwritten`)
     })
@@ -294,17 +285,16 @@ module.exports = function (opts) {
       debug(`Time to next stream overwritten by ${message.user} with ${time}`)
     })
 
-    bot.command('!streamtime overwrite_discard', { rank: 'mod' }, (message) => {
-      setOverwriteMsg(null)
-      setOverwriteTime(null)
+    bot.command('!streamtime overwrite_discard', { rank: 'mod' }, async (message) => {
+      await setOverwriteMsg(null)
+      await setOverwriteTime(null)
       bot.send(`@${message.user} Overwrite has been discarded.`)
       debug(`Overwrite discarded by ${message.user}`)
     })
 
-    bot.command('!streamtime update', { throttle: 10000 }, (message) => {
-      getTimes(bot.channel)
-        .then(() => bot.send(`@${message.user} Updated.`))
-        .catch(() => bot.send(`@${message.user} Couldn't update streamtimes.`))
+    bot.command('!streamtime update', { throttle: 10000 }, async (message) => {
+      await getTimes(bot.channel)
+      bot.send(`@${message.user} Updated.`)
     })
 
     bot.command('!streamtime', (message, extra) => {
