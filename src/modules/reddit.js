@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 const got = require('got')
 
 const withFullStop = (str) =>

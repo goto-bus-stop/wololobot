@@ -1,5 +1,4 @@
 const got = require('got')
-const Promise = require('bluebird')
 
 async function getStream (channel) {
   const response = await got(`https://api.twitch.tv/kraken/streams/${channel}`, { json: true })

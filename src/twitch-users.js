@@ -1,5 +1,4 @@
 const got = require('got')
-const debug = require('debug')('wololobot:users')
 
 module.exports = function users (opts) {
   opts = Object.assign({ interval: 1 * 60 * 1000 }, opts)

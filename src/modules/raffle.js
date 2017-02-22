@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 const delay = require('delay')
 const debug = require('debug')('wololobot:raffle')
 
@@ -111,7 +110,6 @@ module.exports = function (opts) {
     })
 
     bot.command('!raffle open', { rank: 'mod' }, async (message, price, maxTickets, winners = 1) => {
-      const mname = message.user
       if (!bot.florinsOf) {
         throw new Error(
           'The raffle depends on the florins module, but it doesn\'t appear to be available.')
@@ -142,7 +140,6 @@ module.exports = function (opts) {
     })
 
     bot.command('!raffle close', { rank: 'mod' }, async (message) => {
-      const mname = message.user
       if (!bot.raffle) {
         throw new Error('No raffle is currently open.')
       }
