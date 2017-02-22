@@ -12,20 +12,6 @@ module.exports = function (opts) {
 
   const { db } = opts
 
-  db.schema.hasTable('transactions').then(exists => {
-    if (exists) return debug('`transactions` table exists')
-
-    db.schema.createTable('transactions', t => {
-      t.increments('id').primary()
-      t.string('username', 50).index()
-      t.integer('amount').index()
-      t.timestamp('time').defaultTo(db.raw('CURRENT_TIMESTAMP'))
-      t.text('description')
-    })
-      .then(() => debug('created table'))
-      .catch(e => { throw e })
-  })
-
   function florinsOf (user) {
     debug('florinsOf', user)
     return db('transactions')

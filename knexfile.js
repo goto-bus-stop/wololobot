@@ -5,5 +5,6 @@ module.exports = {
   },
   migrations: {
     tableName: 'migrations'
-  }
+  },
+  useNullAsDefault: true
 }
