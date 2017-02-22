@@ -25,7 +25,7 @@ module.exports = function (opts) {
         return { user, tickets: 0 }
       }
 
-      const wallet = await bot.florinsOf(user)
+      const wallet = await bot.florins.of(user)
       if (wallet.florins < tickets * price) {
         throw new Error('You don\'t have that many florins.')
       }
@@ -79,7 +79,7 @@ module.exports = function (opts) {
 
       debug('winners', winners)
 
-      await bot.transactions(
+      await bot.florins.transactions(
         entries().map((entry) => ({
           username: entry.user,
           amount: -(entry.tickets * price),
@@ -111,7 +111,7 @@ module.exports = function (opts) {
     })
 
     bot.command('!raffle open', { rank: 'mod' }, async (message, price, maxTickets, winners = 1) => {
-      if (!bot.florinsOf) {
+      if (!bot.florins) {
         throw new Error(
           'The raffle depends on the florins module, but it doesn\'t appear to be available.')
       }

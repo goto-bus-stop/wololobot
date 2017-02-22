@@ -12,65 +12,93 @@ module.exports = function (opts) {
 
   const { db } = opts
 
-  function florinsOf (user) {
-    debug('florinsOf', user)
-    return db('transactions')
-      .select(db.raw('lower(username) as lname'))
-      .sum('amount as florins')
-      .where('lname', '=', user.toLowerCase())
-      .get(0)
-  }
-
-  async function florinsOfMany (users) {
-    const lusers = users.map((name) => name.toLowerCase())
-    // maps lower case names to the original capitalised names
-    const nameMap = users.reduce((map, user, i) => Object.assign(map, { [lusers[i]]: user }), {})
-    const florinsMap = await db('transactions')
-      .select(db.raw('lower(username) as lname')).sum('amount as wallet')
-      .whereIn('lname', lusers)
-      .groupBy('lname')
-      .reduce((o, t) => Object.assign(o, {
-        [nameMap[t.lname] || t.lname]: t.wallet
-      }), {})
-
-    // add default 0 florins for unrecorded users
-    users.forEach((name) => {
-      if (!florinsMap[name]) {
-        florinsMap[name] = 0
-      }
-    })
-    return florinsMap
-  }
-
-  async function transaction (username, amount, description = '') {
-    await db('transactions').insert({
-      username: username.toLowerCase(),
-      amount: amount,
-      description: description
-    })
-
-    debug(`Added ${amount} florins to ${username}`)
-  }
-
-  async function transactions (list) {
-    if (list.length === 0) {
-      return
+  function makeFlorins () {
+    /**
+     * Find the current florins balance for a single user.
+     */
+    function florinsOf (user) {
+      debug('florinsOf', user)
+      return db('transactions')
+        .select(db.raw('lower(username) as lname'))
+        .sum('amount as florins')
+        .where('lname', '=', user.toLowerCase())
+        .get(0)
     }
 
-    const transactionRows = list.map((transaction) => ({
-      username: transaction.username.toLowerCase(),
-      amount: transaction.amount,
-      description: transaction.description || ''
-    }))
-    await db('transactions').insert(transactionRows)
-    debug(`Added florins to ${transactionRows.length} users.`)
+    /**
+     * Find the current florins balance of multiple users.
+     * 
+     * Returns a Promise for an object:
+     *   `{ [user]: florins }`
+     */
+    async function florinsOfMany (users) {
+      const lusers = users.map((name) => name.toLowerCase())
+      // maps lower case names to the original capitalised names
+      const nameMap = users.reduce((map, user, i) => Object.assign(map, { [lusers[i]]: user }), {})
+      const florinsMap = await db('transactions')
+        .select(db.raw('lower(username) as lname')).sum('amount as wallet')
+        .whereIn('lname', lusers)
+        .groupBy('lname')
+        .reduce((o, t) => Object.assign(o, {
+          [nameMap[t.lname] || t.lname]: t.wallet
+        }), {})
+
+      // add default 0 florins for unrecorded users
+      users.forEach((name) => {
+        if (!florinsMap[name]) {
+          florinsMap[name] = 0
+        }
+      })
+      return florinsMap
+    }
+
+    /**
+     * Add florins to a user's balance. Use negative `amount`s to remove
+     * florins.
+     */
+    async function transaction (username, amount, description = '') {
+      await db('transactions').insert({
+        username: username.toLowerCase(),
+        amount: amount,
+        description: description
+      })
+
+      debug(`Added ${amount} florins to ${username}`)
+    }
+
+    /**
+     * Bulk add florins.
+     */
+    async function transactions (list) {
+      if (list.length === 0) {
+        return
+      }
+
+      const transactionRows = list.map((transaction) => ({
+        username: transaction.username.toLowerCase(),
+        amount: transaction.amount,
+        description: transaction.description || ''
+      }))
+      await db('transactions').insert(transactionRows)
+      debug(`Added florins to ${transactionRows.length} users.`)
+    }
+
+    return {
+      of: florinsOf,
+      ofMany: florinsOfMany,
+      transaction,
+      transactions
+    }
   }
 
   return function (bot) {
+    bot.florins = makeFlorins()
+
     let florinsTimeout = null
     let florinsChecks = []
+
     async function respondFlorins () {
-      const o = await florinsOfMany(florinsChecks)
+      const o = await bot.florins.ofMany(florinsChecks)
 
       const responses = Object.keys(o).map((name) => {
         const extra = []
@@ -91,7 +119,7 @@ module.exports = function (opts) {
 
     async function gain () {
       const users = bot.users()
-      await transactions(users.map((user) => {
+      await bot.florins.transactions(users.map((user) => {
         const sub = bot.isSubscriber && bot.isSubscriber(user.name)
         return {
           username: user.name,
@@ -104,13 +132,6 @@ module.exports = function (opts) {
     setInterval(() => {
       if (bot.isLive) gain()
     }, opts.gainInterval)
-
-    Object.assign(bot, {
-      florinsOf,
-      florinsOfMany,
-      transaction,
-      transactions
-    })
 
     bot.command('!forcegain', { rank: 'mod' }, async (message) => {
       await gain()
@@ -138,7 +159,7 @@ module.exports = function (opts) {
         throw new Error(`"${amount}" doesn't look like an integer`)
       } else {
         amount = parseInt(amount, 10)
-        await transaction(username, amount, description)
+        await bot.florins.transaction(username, amount, description)
         if (amount < 0) {
           bot.send(`@${mname} Removed ${-amount} florins from ${username}.`)
         } else {

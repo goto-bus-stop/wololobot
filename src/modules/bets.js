@@ -78,7 +78,7 @@ module.exports = function bets (opts) {
         throw new Error('You can\'t place a negative bet.')
       }
 
-      const wallet = await bot.florinsOf(user)
+      const wallet = await bot.florins.of(user)
       debug('enter', florins, wallet)
       if (wallet.florins < florins) {
         throw new Error('You don\'t have that many florins.')
@@ -138,7 +138,7 @@ module.exports = function bets (opts) {
         payout: Math.ceil(entry.amount / winningBets * total)
       }))
 
-      await bot.transactions(
+      await bot.florins.transactions(
         allEntries.map((entry) => ({
           username: entry.user,
           amount: -entry.amount,
@@ -146,7 +146,7 @@ module.exports = function bets (opts) {
         }))
       )
 
-      await bot.transactions(
+      await bot.florins.transactions(
         payouts.map((entry) => ({
           username: entry.user,
           amount: entry.payout,
@@ -239,7 +239,7 @@ module.exports = function bets (opts) {
       (err) => debug('Failed to restore bets', err.message))
 
     bot.command('!bet open', { rank: 'mod' }, async (message) => {
-      if (!bot.florinsOf) {
+      if (!bot.florins) {
         throw new Error('Bets require the florins module, but it doesn\'t appear to be available.')
       }
       if (bot.bet) {
