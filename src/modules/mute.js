@@ -4,10 +4,10 @@ module.exports = function (opts) {
   const name = opts.username
 
   return function mute (bot) {
-    let send = bot.send
+    const send = bot.send
 
     bot.command(`!mute ${name}`, { rank: 'mod' }, () => {
-      bot.send = message => debug(`Tried to send "${message}", but was muted`)
+      bot.send = (message) => debug(`Tried to send "${message}", but was muted`)
       debug('Muted')
     })
 
