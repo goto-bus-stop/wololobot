@@ -22,6 +22,7 @@ module.exports = function bets (opts) {
   function betManager (bot, betId) {
     function getBetEntries () {
       return db('betEntries')
+        .where('betId', '=', betId)
         .leftJoin('betOptions', 'betEntries.optionId', 'betOptions.id')
         .select(
           'betEntries.user as user',
