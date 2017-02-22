@@ -60,59 +60,56 @@ module.exports = function (opts) {
       }
     })
 
-    bot.command('!draw open'
-                , { rank: 'mod' }
-                , (message) => {
-                  entrants = []
-                  open = true
-                  nEntrants = 0
-                  bot.send('New drawing opened! To enter, type !play. Subscribers have ' +
-               `${opts.subChances / opts.normalChances}x higher chances to ` +
-               'win. Type !draw close <number of players> to end the drawing.')
-                })
+    bot.command('!draw open', { rank: 'mod' }, (message) => {
+      entrants = []
+      open = true
+      nEntrants = 0
 
-    bot.command('!draw close'
-                , { rank: 'mod' }
-                , (message, number) => {
-                  open = false
-                  number = parseInt(number)
-                  if (isNaN(number)) {
-                    bot.send(`@${message.user} Usage: !draw close <number of players>`)
-                    return
-                  }
-                  if (number > nEntrants) {
-                    bot.send(`@${message.user} Only ${nEntrants} people entered the drawing. Do !draw close` +
-                 `again with a number up to ${nEntrants}.`)
-                    return
-                  }
-                  winners = []
-                  for (let i = number; i > 0; i--) {
-                    pickRandom()
-                  }
-                  bot.send(winnersStr())
-                })
+      bot.send(
+        'New drawing opened! To enter, type !play. Subscribers have ' +
+        `${opts.subChances / opts.normalChances}x higher chances to ` +
+        'win. Type !draw close <number of players> to end the drawing.'
+      )
+    })
 
-    bot.command('!draw reroll'
-                , { rank: 'mod' }
-                , (message, user) => {
-                  if (user === void 0) {
-                    bot.send(`@${message.user} Usage: !draw reroll <user>`)
-                    return
-                  }
-                  user = user.toLowerCase()
-                  let i = winners.indexOf(user)
-                  if (i === -1) {
-                    bot.send(`'${user}' didn't win the drawing!`)
-                    return
-                  }
-                  if (entrants.length === 0) {
-                    bot.send('There are no entrants remaining! Open another drawing with !draw open')
-                    return
-                  }
-                  winners.splice(i, 1)
-                  pickRandom()
-                  bot.send(`${user} has been replaced with ${winners[winners.length - 1]}`)
-                })
+    bot.command('!draw close', { rank: 'mod' }, (message, number) => {
+      open = false
+      number = parseInt(number)
+      if (isNaN(number)) {
+        bot.send(`@${message.user} Usage: !draw close <number of players>`)
+        return
+      }
+      if (number > nEntrants) {
+        bot.send(`@${message.user} Only ${nEntrants} people entered the drawing. Do !draw close` +
+      `again with a number up to ${nEntrants}.`)
+        return
+      }
+      winners = []
+      for (let i = number; i > 0; i--) {
+        pickRandom()
+      }
+      bot.send(winnersStr())
+    })
+
+    bot.command('!draw reroll', { rank: 'mod' }, (message, user) => {
+      if (user === void 0) {
+        bot.send(`@${message.user} Usage: !draw reroll <user>`)
+        return
+      }
+      user = user.toLowerCase()
+      let i = winners.indexOf(user)
+      if (i === -1) {
+        bot.send(`'${user}' didn't win the drawing!`)
+        return
+      }
+      if (entrants.length === 0) {
+        bot.send('There are no entrants remaining! Open another drawing with !draw open')
+        return
+      }
+      winners.splice(i, 1)
+      pickRandom()
+      bot.send(`${user} has been replaced with ${winners[winners.length - 1]}`)
+    })
 
     bot.command('!winners', (message) => {
       bot.send(winnersStr())
