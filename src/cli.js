@@ -12,7 +12,7 @@ const sex = require('./modules/sex')
 const mute = require('./modules/mute')
 const waffle = require('./modules/waffle')
 
-module.exports = function main(confile = 'config.json') {
+module.exports = function main (confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
   const db = knex(conf.database)
   const wb = wololobot(conf)

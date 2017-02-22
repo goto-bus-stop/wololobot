@@ -1,14 +1,12 @@
-const Promise = require('bluebird')
-
 const debug = require('debug')('wololobot:florins')
 
 module.exports = function (opts) {
   opts = Object.assign({
-    delay: 4000
-  , gain: 5 // 5 florins per 10 minutes
-  , subGain: 10 // 10 florins per 10 minutes
-  , gainInterval: 10 * 60 * 1000 // 10 minutes
-  , excludeMods: false
+    delay: 4000,
+    gain: 5, // 5 florins per 10 minutes
+    subGain: 10, // 10 florins per 10 minutes
+    gainInterval: 10 * 60 * 1000, // 10 minutes
+    excludeMods: false
   }, opts)
 
   const { db } = opts
@@ -27,7 +25,7 @@ module.exports = function (opts) {
       .catch(e => { throw e })
   })
 
-  function florinsOf(user) {
+  function florinsOf (user) {
     debug('florinsOf', user)
     return db('transactions')
       .select(db.raw('lower(username) as lname'))
@@ -35,7 +33,7 @@ module.exports = function (opts) {
       .where('lname', '=', user.toLowerCase())
       .then(arr => arr[0])
   }
-  function florinsOfMany(users) {
+  function florinsOfMany (users) {
     let lusers = users.map(u => u.toLowerCase())
     // maps lower case names to the original capitalised names
     let nameMap = users.reduce((map, user, i) => Object.assign(map, { [lusers[i]]: user }), {})
@@ -50,17 +48,17 @@ module.exports = function (opts) {
         return o
       })
   }
-  function transaction(username, amount, description = '') {
+  function transaction (username, amount, description = '') {
     return db('transactions')
-      .insert({ username: username.toLowerCase()
-              , amount: amount
-              , description: description })
+      .insert({ username: username.toLowerCase(),
+        amount: amount,
+        description: description })
       .then(() => debug(`Added ${amount} florins to ${username}`))
   }
-  function transactions(list) {
-    const inserts = list.map(t => ({ username: t.username.toLowerCase()
-                                   , amount: t.amount
-                                   , description: t.description || '' }))
+  function transactions (list) {
+    const inserts = list.map(t => ({ username: t.username.toLowerCase(),
+      amount: t.amount,
+      description: t.description || '' }))
     return db('transactions').insert(inserts)
       .then(() => debug(`Added florins to ${inserts.length} users.`))
   }
@@ -68,13 +66,13 @@ module.exports = function (opts) {
   return function (bot) {
     let florinsTimeout = null
     let florinsChecks = []
-    function respondFlorins() {
+    function respondFlorins () {
       florinsOfMany(florinsChecks)
         .then(o => {
           return Object.keys(o).map(name => {
-            let extra = []
-            let bet = bot.bet && bot.bet.entryValue(name) || 0
-            let raffle = bot.raffle && bot.raffle.entryValue(name) || 0
+            const extra = []
+            const bet = bot.bet ? bot.bet.entryValue(name) : 0
+            const raffle = bot.raffle ? bot.raffle.entryValue(name) : 0
             if (bet) extra.push(`bet:${bet}`)
             if (raffle) extra.push(`raffle:${raffle}`)
 
@@ -88,13 +86,13 @@ module.exports = function (opts) {
       florinsTimeout = null
     }
 
-    function gain() {
+    function gain () {
       let users = bot.users()
       transactions(users.map(u => {
         let sub = bot.isSubscriber && bot.isSubscriber(u.name)
-        return { username: u.name
-               , amount: sub ? opts.subGain : opts.gain
-               , description: 'florins gain' }
+        return { username: u.name,
+          amount: sub ? opts.subGain : opts.gain,
+          description: 'florins gain' }
       }))
     }
 
@@ -125,18 +123,17 @@ module.exports = function (opts) {
     bot.command('!transaction'
                , { rank: 'mod' }
                , (message, username, amount, description = '') => {
-      const mname = message.user
-      if (!/^-?\d+$/.test(amount)) {
-        bot.send(`@${mname}, "${amount}" doesn't look like an integer`)
-      }
-      else {
-        amount = parseInt(amount, 10)
-        transaction(username, amount, description)
-          .then(() => bot.send(amount < 0? `@${mname} Removed ${-amount} florins from ${username}.`
-                              : /* _ */    `@${mname} Gave ${amount} florins to ${username}.`))
+                 const mname = message.user
+                 if (!/^-?\d+$/.test(amount)) {
+                   bot.send(`@${mname}, "${amount}" doesn't look like an integer`)
+                 } else {
+                   amount = parseInt(amount, 10)
+                   transaction(username, amount, description)
+          .then(() => bot.send(amount < 0 ? `@${mname} Removed ${-amount} florins from ${username}.`
+                              : `@${mname} Gave ${amount} florins to ${username}.`))
           .catch(e => bot.send(`@${mname} ${e.message}`))
-      }
-    })
+                 }
+               })
 
     const topCommand = opts => (message, n = 3) => {
       if (n > 15) n = 15

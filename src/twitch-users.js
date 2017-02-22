@@ -1,16 +1,15 @@
 const request = require('request')
 const debug = require('debug')('wololobot:users')
 
-module.exports = function users(opts) {
-
+module.exports = function users (opts) {
   opts = Object.assign({ interval: 1 * 60 * 1000 }, opts)
 
   const updateUsers = (channel, client) => {
     let ircChannel = `#${channel}`
     return new Promise((resolve, reject) => {
       request(
-        { uri: `http://tmi.twitch.tv/group/user/${channel}/chatters`
-        , json: true },
+        { uri: `http://tmi.twitch.tv/group/user/${channel}/chatters`,
+          json: true },
         (err, res, body = {}) => {
           if (err) {
             debug('An error occured while trying to get the chatters for ' +
@@ -24,7 +23,7 @@ module.exports = function users(opts) {
                 chatters.viewers
               ).map(nick => { return { name: nick, mode: '' } })
               resolve()
-            } catch(e) {
+            } catch (e) {
               if (!(e instanceof TypeError)) throw e
               // Twitch probably didn't send a response in the right format
               debug('An error occured while trying to get the chatters for ' +

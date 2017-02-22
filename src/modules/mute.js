@@ -1,11 +1,9 @@
 const debug = require('debug')('wololobot:mute')
 
 module.exports = function (opts) {
-
   const name = opts.username
 
-  return function mute(bot) {
-
+  return function mute (bot) {
     let send = bot.send
 
     bot.command(`!mute ${name}`, { rank: 'mod' }, () => {

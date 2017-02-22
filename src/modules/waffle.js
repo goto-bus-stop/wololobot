@@ -5,7 +5,7 @@ const pickRandom = (arr, amount) => {
   for (let i = 0; i < amount; i++) {
     let pickIndex = randomInt(arr.length - 1)
     let pick = arr[pickIndex]
-    switch(i) {
+    switch (i) {
       case 0:
         str = pick
         break
@@ -19,10 +19,10 @@ const pickRandom = (arr, amount) => {
   }
   return str
 }
-module.exports = function(before = new Set(), after = new Set()) {
+module.exports = function (before = new Set(), after = new Set()) {
   ['classic', 'chocolate', 'Brussels', 'Flemish', 'Belgian', 'bacon'].forEach(item => before.add(item))
   ;['Nutella', 'strawberries', 'raspberries', 'cream', 'cherries', 'apples', 'peaches', 'maple syrup', 'icing', 'sugar', 'chocolate sauce'].forEach(item => after.add(item))
-  return function(bot) {
+  return function (bot) {
     bot.command('!waffle', message => {
       let before_ = Array.from(before.values())
       let after_ = Array.from(after.values())
