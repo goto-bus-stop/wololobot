@@ -4,6 +4,13 @@ const debug = require('debug')('wololobot:bets')
 
 const sum = (a, b) => a + b
 
+/**
+ * Parse a bet options string.
+ *
+ *   "a) option1 b) option2"
+ *   →
+ *   { a: 'option1', b: 'option2' }
+ */
 const parse = (str) => {
              // "a) option1 b) option2"
   const rx = /([a-z]+)\)(.*?)(?:\s[a-z]+\)|$)/g
@@ -20,6 +27,13 @@ module.exports = function bets (opts) {
   const { db } = opts
 
   function betManager (bot, betId) {
+    /**
+     * Get all entries for the current bet.
+     *
+     * Returns a Promise for an array of objects:
+     *
+     *    { user, amount, optionId, name }
+     */
     function getBetEntries () {
       return db('betEntries')
         .where('betEntries.betId', '=', betId)
@@ -32,10 +46,20 @@ module.exports = function bets (opts) {
         )
     }
 
+    /**
+     * Check if a bet option is valid.
+     *
+     * Returns a Promise for a boolean.
+     */
     async function valid (option) {
       return !!(await getBetOption(option))
     }
 
+    /**
+     * Get the current bet status.
+     *
+     * Returns a Promise for 'open', 'closed' or 'ended'.
+     */
     async function getStatus () {
       const bet = await db('bets')
         .select('status')
@@ -44,6 +68,9 @@ module.exports = function bets (opts) {
       return bet.status
     }
 
+    /**
+     * Close the current bet, locking entries.
+     */
     async function close () {
       debug('close', await pool())
 
@@ -52,10 +79,22 @@ module.exports = function bets (opts) {
         .update({ status: 'closed' })
     }
 
+    /**
+     * Check if the current bet has been closed.
+     *
+     * Returns a Promise for a boolean.
+     */
     async function closed () {
       return await getStatus() === 'closed'
     }
 
+    /**
+     * Get data for a bet option.
+     *
+     * Returns a Promise for an object:
+     *
+     *   { id, name, description }
+     */
     function getBetOption (name) {
       return db('betOptions')
         .where('betId', '=', betId)
@@ -63,6 +102,9 @@ module.exports = function bets (opts) {
         .first()
     }
 
+    /**
+     * Enter a bet.
+     */
     async function enter (user, optionName, florins) {
       const status = await getStatus()
       if (status !== 'open') {
@@ -97,6 +139,11 @@ module.exports = function bets (opts) {
       return db('betEntries').where('id', '=', inserted[0]).first()
     }
 
+    /**
+     * Get the sum of all bet entries.
+     *
+     * Returns a Promise for a number.
+     */
     async function pool () {
       const result = await db('betEntries')
         .where('betId', '=', betId)
@@ -106,6 +153,9 @@ module.exports = function bets (opts) {
       return result.total
     }
 
+    /**
+     * End the current bet.
+     */
     async function end (optionName) {
       const winningOption = await getBetOption(optionName)
       if (!winningOption) {
@@ -153,6 +203,9 @@ module.exports = function bets (opts) {
       return winners
     }
 
+    /**
+     * Clear a user's bet entry.
+     */
     async function clear (user) {
       if (await getStatus() !== 'open') {
         throw new Error('No bets are open right now.')
@@ -164,6 +217,11 @@ module.exports = function bets (opts) {
         .delete()
     }
 
+    /**
+     * Returns a Promise for an array of available bet options:
+     *
+     *   { id, name, description }
+     */
     function getBetOptions () {
       return db('betOptions').where('betId', '=', betId)
     }
@@ -205,6 +263,9 @@ module.exports = function bets (opts) {
     }
   }
 
+  /**
+   * Create a new bet.
+   */
   async function createBet (bot, options) {
     const betId = await db('bets')
       .insert({ status: 'open' })
@@ -220,6 +281,9 @@ module.exports = function bets (opts) {
     return betManager(bot, betId, options)
   }
 
+  /**
+   * Restore a previous bet, especially after a bot restart.
+   */
   async function restoreBet (bot) {
     const openBet = await db('bets').where('status', '!=', 'ended').first()
 
