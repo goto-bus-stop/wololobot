@@ -8,7 +8,6 @@ const bets = require('./modules/bets')
 const reddit = require('./modules/reddit')
 const streamtime = require('./modules/streamtime')
 const drawing = require('./modules/drawing')
-const sex = require('./modules/sex')
 const mute = require('./modules/mute')
 const waffle = require('./modules/waffle')
 
@@ -23,7 +22,6 @@ module.exports = function main (confile = 'config.json') {
   wb.use(reddit(conf.reddit))
   wb.use(streamtime({ db: db }))
   wb.use(drawing())
-  wb.use(sex())
   wb.use(mute({ username: conf.username }))
   wb.use(waffle())
 
