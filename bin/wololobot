@@ -7,3 +7,11 @@ global.Promise = require('bluebird')
 require('async-to-gen/register')
 
 require('../src/cli')(...process.argv.slice(2))
+  .then(() => {
+    console.log('started')
+  })
+  .catch((err) => {
+    process.nextTick(() => {
+      throw err
+    })
+  })

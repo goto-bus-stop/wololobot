@@ -11,10 +11,14 @@ const drawing = require('./modules/drawing')
 const mute = require('./modules/mute')
 const waffle = require('./modules/waffle')
 
-module.exports = function main (confile = 'config.json') {
+module.exports = async function main (confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
-  const db = knex(conf.database)
+  const db = knex(require('../knexfile'))
+
   const wb = wololobot(conf)
+
+  await db.migrate.latest()
+
   wb.use(version())
   wb.use(florins({ db: db, excludeMods: true }))
   wb.use(raffle())
