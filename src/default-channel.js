@@ -1,5 +1,5 @@
 // plugin to default the channel for several commands to a given channel
-export default function (channel, commands = [ 'action', 'send', 'names' ]) {
+module.exports = function (channel, commands = [ 'action', 'send', 'names' ]) {
 
   return function (bot) {
     commands.forEach(method => {

@@ -1,6 +1,6 @@
-import assign from 'object-assign'
-import Promise from 'bluebird'
-import request from 'request'
+const assign = require('object-assign')
+const Promise = require('bluebird')
+const request = require('request')
 
 const debug = require('debug')('wololobot:random-reddit')
 
@@ -24,7 +24,7 @@ const getNextQuote = (sub, minKarma, attempts = 0) =>
     : /* otherwise, accept a bad quote */  cleanTitle(post.title)
     )
 
-export default function (opts) {
+module.exports = function (opts) {
   opts = assign({
     sub: 'random'
   , min_karma: 1

@@ -1,6 +1,6 @@
-import pack from '../../package.json'
+const pack = require('../../package.json')
 
-export default function () {
+module.exports = function () {
 
   return function (bot) {
     bot.command('!version', () => {

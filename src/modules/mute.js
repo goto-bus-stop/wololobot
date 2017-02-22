@@ -1,6 +1,6 @@
 const debug = require('debug')('wololobot:mute')
 
-export default function (opts) {
+module.exports = function (opts) {
 
   const name = opts.username
 

@@ -1,4 +1,4 @@
-import Promise from 'bluebird'
+const Promise = require('bluebird')
 const debug = require('debug')('wololobot:raffle')
 
 const openUsage = '!raffle open [price] [max tickets] [?winners]'
@@ -6,7 +6,7 @@ const openUsage = '!raffle open [price] [max tickets] [?winners]'
 const sum = (a, b) => a + b
 const check = n => n != null && !isNaN(parseInt(n, 10))
 
-export default function (opts) {
+module.exports = function (opts) {
 
   function raffle(bot, price, maxTickets, winnersNeeded) {
     let _entries = {}

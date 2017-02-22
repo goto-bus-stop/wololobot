@@ -1,18 +1,18 @@
-import knex from 'knex'
-import { readFileSync as readFile } from 'fs'
-import wololobot from './index'
-import version from './modules/version'
-import florins from './modules/florins'
-import raffle from './modules/raffle'
-import bets from './modules/bets'
-import reddit from './modules/reddit'
-import streamtime from './modules/streamtime'
-import drawing from './modules/drawing'
-import sex from './modules/sex'
-import mute from './modules/mute'
-import waffle from './modules/waffle'
+const knex = require('knex')
+const { readFileSync: readFile } = require('fs')
+const wololobot = require('./index')
+const version = require('./modules/version')
+const florins = require('./modules/florins')
+const raffle = require('./modules/raffle')
+const bets = require('./modules/bets')
+const reddit = require('./modules/reddit')
+const streamtime = require('./modules/streamtime')
+const drawing = require('./modules/drawing')
+const sex = require('./modules/sex')
+const mute = require('./modules/mute')
+const waffle = require('./modules/waffle')
 
-export default function main(confile = 'config.json') {
+module.exports = function main(confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
   const db = knex(conf.database)
   const wb = wololobot(conf)

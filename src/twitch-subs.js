@@ -1,4 +1,4 @@
-export default function twitchSubs(opts = {}) {
+module.exports = function twitchSubs(opts = {}) {
 
   return function (bot) {
     // har har

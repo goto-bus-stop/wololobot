@@ -1,9 +1,9 @@
-import assign from 'object-assign'
-import Promise from 'bluebird'
+const assign = require('object-assign')
+const Promise = require('bluebird')
 
 const debug = require('debug')('wololobot:florins')
 
-export default function (opts) {
+module.exports = function (opts) {
   opts = assign({
     delay: 4000
   , gain: 5 // 5 florins per 10 minutes

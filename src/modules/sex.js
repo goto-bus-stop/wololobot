@@ -1,4 +1,4 @@
-export default function(opts) {
+module.exports = function(opts) {
 
   return function sex(bot) {
     bot.command('!sex', () => {

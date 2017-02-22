@@ -1,20 +1,18 @@
-import knex from 'knex'
-import irc from 'slate-irc'
-import { createStream as ircparser } from 'irc-message'
-import { connect } from 'net'
-import debounce from 'debounce'
-import command from './command'
-import twitch from 'slate-irc-twitch'
-import defaultChannel from './default-channel'
-import twitchUsers from './twitch-users'
-import twitchLiveStatus from './twitch-live-status'
-import twitchSubs from './twitch-subs'
-
-import 'babel-polyfill'
+const knex = require('knex')
+const irc = require('slate-irc')
+const { createStream: ircparser } = require('irc-message')
+const { connect } = require('net')
+const debounce = require('debounce')
+const command = require('./command')
+const twitch = require('slate-irc-twitch')
+const defaultChannel = require('./default-channel')
+const twitchUsers = require('./twitch-users')
+const twitchLiveStatus = require('./twitch-live-status')
+const twitchSubs = require('./twitch-subs')
 
 const debug = require('debug')('wololobot:main')
 
-export default function wololobot(opts) {
+module.exports = function wololobot(opts) {
   let stream = opts.stream || connect(opts)
   let parser = ircparser({ parsePrefix: true })
   parser.on('data', msg => {

@@ -1,4 +1,4 @@
-import assign from 'object-assign'
+const assign = require('object-assign')
 
 const debug = require('debug')('wololobot:bets')
 
@@ -17,7 +17,7 @@ const parse = str => {
   return options
 }
 
-export default function bets(opts) {
+module.exports = function bets(opts) {
 
   const { db } = opts
 

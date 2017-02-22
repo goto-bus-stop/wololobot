@@ -1,8 +1,8 @@
-import request from 'request'
-import tzCodes from 'timezone-abbr-offsets'
-import strip from 'strip'
-import assign from 'object-assign'
-import countdown from 'countdown'
+const request = require('request')
+const tzCodes = require('timezone-abbr-offsets')
+const strip = require('strip')
+const assign = require('object-assign')
+const countdown = require('countdown')
 
 let debug = require('debug')('wololobot:streamtime')
 
@@ -117,7 +117,7 @@ const parseSchedule = str => {
   return streams
 }
 
-export default function(opts) {
+module.exports = function(opts) {
 
   opts = assign({
     schedImage: 'http://static-cdn.jtvnw.net/jtv_user_pictures/panel-23728458-image-15fb69742e4863a7-320.jpeg' // Use ZeroEmpires' schedule image by default

@@ -1,5 +1,5 @@
-import request from 'request'
-import Promise from 'bluebird'
+const request = require('request')
+const Promise = require('bluebird')
 
 function getStream(channel) {
   return new Promise((resolve, reject) => {
@@ -14,7 +14,7 @@ function getStream(channel) {
   })
 }
 
-export default function twitchLiveStatus(opts = {}) {
+module.exports = function twitchLiveStatus(opts = {}) {
   const interval = opts.interval || 5 * 60 * 1000
 
   return function (client) {

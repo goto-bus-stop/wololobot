@@ -4,9 +4,11 @@
   "version": "2.4.3",
   "main": "./lib/index",
   "bin": "./bin/wololobot",
+  "engines": {
+    "node": ">= 7"
+  },
   "dependencies": {
     "array-findindex": "",
-    "babel-polyfill": "^6.7.4",
     "bluebird": "^3.3.5",
     "countdown": "mckamey/countdownjs#v2.5.2",
     "debounce": "^1.0.0",
@@ -21,18 +23,7 @@
     "strip": "^3.0.0",
     "timezone-abbr-offsets": "^1.0.1"
   },
-  "devDependencies": {
-    "babel-cli": "^6.7.5",
-    "babel-preset-es2015-node4": "^2.1.0"
-  },
-  "babel": {
-    "presets": [
-      "es2015-node4"
-    ]
-  },
   "scripts": {
-    "postinstall": "npm run babel",
-    "babel": "babel --out-dir lib src",
     "start": "DEBUG=wololobot:* ./bin/wololobot"
   }
 }

@@ -19,7 +19,7 @@ const pickRandom = (arr, amount) => {
   }
   return str
 }
-export default function(before = new Set(), after = new Set()) {
+module.exports = function(before = new Set(), after = new Set()) {
   ['classic', 'chocolate', 'Brussels', 'Flemish', 'Belgian', 'bacon'].forEach(item => before.add(item))
   ;['Nutella', 'strawberries', 'raspberries', 'cream', 'cherries', 'apples', 'peaches', 'maple syrup', 'icing', 'sugar', 'chocolate sauce'].forEach(item => after.add(item))
   return function(bot) {

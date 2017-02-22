@@ -1,4 +1,4 @@
-import debounce from 'debounce'
+const debounce = require('debounce')
 
 const debug = require('debug')('wololobot:command')
 
@@ -37,7 +37,7 @@ const userLevels = {
   viewer: 0
 }
 
-export default function () {
+module.exports = function () {
 
   return function command(bot) {
     bot._commands = {}

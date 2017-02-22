@@ -1,9 +1,9 @@
-import findIndex from 'array-findindex'
-import request from 'request'
-import assign from 'object-assign'
+const findIndex = require('array-findindex')
+const request = require('request')
+const assign = require('object-assign')
 const debug = require('debug')('wololobot:users')
 
-export default function users(opts) {
+module.exports = function users(opts) {
 
   opts = assign({ interval: 1 * 60 * 1000 }, opts)
 
