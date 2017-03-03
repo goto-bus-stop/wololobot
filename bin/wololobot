@@ -5,7 +5,7 @@ global.Promise = require('bluebird')
 
 // Enable async functions
 try {
-  eval('async function a () {}')
+  eval('async function a () {}') // eslint-disable-line
 } catch (_) {
   require('async-to-gen/register')
 }
