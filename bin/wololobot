@@ -2,11 +2,10 @@
 
 // Use Bluebird promises everywhere
 global.Promise = require('bluebird')
+const isAsyncSupported = require('is-async-supported')
 
 // Enable async functions
-try {
-  eval('async function a () {}') // eslint-disable-line
-} catch (_) {
+if (!isAsyncSupported()) {
   require('async-to-gen/register')
 }
 
