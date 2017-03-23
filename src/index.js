@@ -1,7 +1,6 @@
 const ms = require('ms')
 const irc = require('slate-irc')
 const { createStream: ircparser } = require('irc-message')
-const { connect } = require('net')
 const debounce = require('debounce')
 const command = require('./command')
 const twitch = require('slate-irc-twitch')
@@ -9,9 +8,12 @@ const defaultChannel = require('./default-channel')
 const twitchUsers = require('./twitch-users')
 const twitchLiveStatus = require('./twitch-live-status')
 const twitchSubs = require('./twitch-subs')
+const getConnection = require('./getConnection')
 
-module.exports = function wololobot (opts) {
-  const stream = opts.stream || connect(opts)
+module.exports = async function wololobot (opts) {
+  const channel = opts.channel.startsWith('#') ? opts.channel : `#${opts.channel}`
+
+  const stream = opts.stream || await getConnection(channel.slice(1))
   const parser = ircparser({ parsePrefix: true })
   parser.on('data', msg => {
     const len = msg.params.length
@@ -25,8 +27,6 @@ module.exports = function wololobot (opts) {
       tags: msg.tags
     })
   })
-
-  const channel = opts.channel.startsWith('#') ? opts.channel : `#${opts.channel}`
 
   const bot = irc(stream, parser)
   bot.use(command())

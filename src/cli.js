@@ -15,7 +15,7 @@ module.exports = async function main (confile = 'config.json') {
   const conf = JSON.parse(readFile(confile))
   const db = knex(require('../knexfile'))
 
-  const wb = wololobot(conf)
+  const wb = await wololobot(conf)
 
   await db.migrate.latest()
 
