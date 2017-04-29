@@ -20,7 +20,7 @@
     "irc-message": "^3.0.2",
     "is-async-supported": "^1.2.0",
     "join-component": "^1.1.0",
-    "knex": "^0.12.6",
+    "knex": "^0.13.0",
     "ms": "^1.0.0",
     "random-int": "^1.0.0",
     "random-item": "^1.0.0",
